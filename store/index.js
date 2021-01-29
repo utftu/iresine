@@ -1,4 +1,4 @@
-import {setAdd} from './utils'
+import {setAdd, setRightDifference} from './utils'
 
 class Model {
   constructor(type, id, template) {
@@ -59,9 +59,9 @@ class Store {
   }
 
   parse(data) {
-    const storeIds = []
+    const storeIds = new Set()
     this.#parse(data, {storeIds})
-    return storeIds
+    return [...storeIds]
   }
   #insertModel(template, parentModel) {
     const storeId = getStoreKey(template)
@@ -76,18 +76,26 @@ class Store {
     return Symbol.for(storeId)
   }
   #insertModelOut(storeId, template, parentModelIds) {
-    // const storeId = getStoreKey(template)
     if (!this.models.has(storeId)) {
       this.models.set(storeId, new Model(template.__typename, template.id, template))
     }
     const currentModel = this.models.get(storeId)
+    const childrenModelIds = new Set()
     currentModel.template = this.#parse(
       template,
-      {currentModelId: currentModel.modelId, omitNextModel: true}
+      {currentModelId: currentModel.modelId, omitNextModel: true, storeIds: childrenModelIds}
     )
+    const childrenIdsToCheck = setRightDifference(childrenModelIds, currentModel.children)
+
     if (parentModelIds) {
       setAdd(currentModel.parents, parentModelIds)
     }
+    return Symbol.for(storeId)
+  }
+  #insertModelIn(template, parentModel) {
+    const storeId = getStoreKey(template)
+    parentModel.children.add(storeId)
+    this.#insertModelOut(storeId, template, [parentModel.storeId])
     return Symbol.for(storeId)
   }
   #parse(data, {currentModel, omitNextModel, storeIds}) {
@@ -99,7 +107,7 @@ class Store {
           currentModel.children.add(storeId)
         }
         if (storeIds) {
-          storeIds.push(storeId)
+          storeIds.add(storeId)
         }
         return sym
       }
