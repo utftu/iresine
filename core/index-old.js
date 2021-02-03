@@ -1,16 +1,22 @@
 import {setAdd, setRightUniq} from './utils.js';
-import objectPath from './object-path.js';
 
 class Model {
-  constructor(storeId) {
-    this.storeId = storeId;
+  constructor(type, id, template) {
+    this.type = type;
+    this.id = id;
+    this.template = template;
   }
   parents = new Set();
   children = new Set();
   refs = new Map();
-  prepared = null
 
   on = new Set();
+  get storeId() {
+    return `${this.type}:${this.id}`;
+  }
+  get modelId() {
+    return `${this.type}:${this.id}`;
+  }
 }
 
 class Store {
@@ -51,43 +57,11 @@ class Store {
   parse(data) {
     return this.#parse(data);
   }
-  get(storeId) {
-    const model = this.models.get(storeId)
-    if (model.prepared) {
-      return model.prepared
-    }
-    model.prepared = this.join(storeId)
-    return model.prepared
-  }
-  join(storeId) {
-    const model = this.models.get(storeId);
-    const templateObj = {};
-    for (let i = 0; i < model.template.length; i++) {
-      const [path, value] = model.template[i];
-
-      if (Array.isArray(value)) {
-        objectPath.set(path, templateObj, []);
-      } else if (isObject(value)) {
-        objectPath.set(path, templateObj, {});
-      } else {
-        objectPath.set(path, templateObj, value);
-      }
-    }
-
-    for (let [path, storeId] of model.refs) {
-      const templateObjChild = this.join(this.models.get(storeId).storeId);
-      objectPath.set(path, templateObj, templateObjChild);
-    }
-
-    return templateObj;
-  }
-  // todo
   #checkModel(storeId) {
     const idsToCheck = new Set([storeId]);
     for (const storeId of idsToCheck) {
       const model = this.models.get(storeId);
-      //todo
-      if (model.on.size !== 0 || model.parents.size !== 0) {
+      if (model.on.size !== 0) {
         continue;
       }
       if (model.children.size !== 0) {
@@ -97,17 +71,25 @@ class Store {
       this.models.delete(storeId);
     }
   }
-  #insertModel(storeId, rawTemplate, parentModelIds) {
+  #insertModel(storeId, template, parentModelIds) {
+    if (this.models.has(storeId) && this.models.get(storeId).template === template) {
+      if (parentModelIds) {
+        setAdd(this.models.get(storeId).parents, parentModelIds);
+      }
+      return;
+    }
+
     if (!this.models.has(storeId)) {
-      this.models.set(storeId, new Model(storeId));
+      this.models.set(storeId, new Model(getTemplateType(template), getTemplateId(template), template));
     }
 
     const currentModel = this.models.get(storeId);
 
     const oldChildren = currentModel.children;
     currentModel.children = new Set();
+    currentModel.template = template;
 
-    currentModel.refs = this.#parse(rawTemplate, {
+    currentModel.refs = this.#parse(template, {
       currentModel: currentModel,
       omitNextTemplate: true,
     });
@@ -116,13 +98,13 @@ class Store {
       this.#checkModel(removedChildId);
     }
 
+    // todo
     if (parentModelIds) {
       setAdd(currentModel.parents, parentModelIds);
     }
   }
   #parse(data, {currentModel, omitNextTemplate = false} = {}) {
-    const fields = [[[], data]];
-    const template = [];
+    const fields = [['', data]];
     const refs = new Map();
 
     for (let i = 0; i < fields.length; i++) {
@@ -137,7 +119,6 @@ class Store {
       const structureType = getStructureType(data);
 
       if (structureType === 'primitive') {
-        template.push([path, data]);
         continue;
       }
       if (structureType === 'template' && omitNextTemplate === false) {
@@ -154,48 +135,22 @@ class Store {
         continue;
       }
       if (structureType === 'object' || structureType === 'template') {
-        for (let key in data) {
-          let pathKey = key;
-          if (Array.isArray(data[key])) {
-            pathKey = `[]${key}`;
-          }
-          fields.push([[...path, pathKey], data[key]]);
-        }
-        if (isEmptyObject(data)) {
-          template.push([path, {}]);
+        for (const key in data) {
+          fields.push([`${mayDot(path)}${key}`, data[key]]);
         }
         continue;
       }
       if (structureType === 'array') {
-        if (data.length === 0) {
-          template.push([path, []]);
-        }
         for (let i = 0; i < data.length; i++) {
-          let key = i;
-          if (Array.isArray(data[i])) {
-            key = `[]${key}`;
-          }
-          fields.push([[...path, key], data[key]]);
+          fields.push([`${mayDot(path)}${i}`, data[i]]);
         }
         continue;
       }
-    }
-
-    if (currentModel) {
-      currentModel.template = template;
     }
 
     return refs;
   }
 }
-
-// function setResult(path, data, value) {
-//   if (path.length === 0) {
-//     return;
-//   }
-//   const lastPath = path[path.length - 1];
-//   data[lastPath] = value;
-// }
 
 function getStructureType(data) {
   if (Array.isArray(data)) {
@@ -210,6 +165,10 @@ function getStructureType(data) {
   return 'primitive';
 }
 
+function mayDot(str) {
+  return str.length === 0 ? str : `${str}.`;
+}
+
 function getStoreKey(template) {
   return `${getTemplateType(template)}:${getTemplateId(template)}`;
 }
@@ -222,13 +181,6 @@ function getTemplateId(template) {
   return template.id;
 }
 
-function isEmptyObject(obj) {
-  for (const key in obj) {
-    return false;
-  }
-  return true;
-}
-
 function isTemplate(data) {
   return !!(getTemplateType(data) && getTemplateId(data));
 }
@@ -238,28 +190,9 @@ function isObject(data) {
   return !!(prototype === Object.prototype || prototype === null);
 }
 
-// function objectSet(path, target, value) {
-//   const pathArr = Array.isArray(path) ? path : path.split('.');
-//   let entity = target;
-//   for (let i = 0; i < pathArr.length; i++) {
-//     const currentPath = pathArr[i];
-//
-//     const isArrPath = currentPath[0] === '[' && currentPath[currentPath.length - 1] === ']';
-//     const key = isArrPath ? currentPath.slice(1, -1) : currentPath;
-//
-//     if (isArrPath && !Array.isArray(entity)) {
-//       entity[key] = [];
-//     } else if (!entity) {
-//       entity[key] = {};
-//     }
-//
-//     if (i === pathArr.length - 1) {
-//       entity[key] = value;
-//     }
-//
-//     entity = entity[key];
-//   }
-// }
+function isArray(data) {
+  return Array.isArray(data);
+}
 
 // const user = {
 //   __typename: 'user',
