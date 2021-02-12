@@ -1,0 +1,107 @@
+[
+  {
+    "value": "1",
+    "label": "Россия",
+    "disable": true,
+    "children": [
+      {
+        "value": "2",
+        "label": "Центральный федеральный округ",
+        "disable": false,
+        "children": [
+          {
+            "value": "3",
+            "label": "Москва и область",
+            "disable": false,
+            "children": [
+              {
+                "value": "4",
+                "label": "Москва",
+                "disable": false,
+                "children": []
+              },
+              {
+                "value": "5",
+                "label": "Химки",
+                "disable": false,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "value": "6",
+        "label": "Северо-Западный федеральный округ",
+        "disable": false,
+        "children": [
+          {
+            "value": "7",
+            "label": "Санкт-Петербург и область",
+            "disable": false,
+            "children": [
+              {
+                "value": "8",
+                "label": "Санкт-Петербург",
+                "disable": false,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "value": "9",
+        "label": "Уральский федеральный округ",
+        "disable": false,
+        "children": [
+          {
+            "value": "10",
+            "label": "Челябинская область",
+            "disable": false,
+            "children": [
+              {
+                "value": "11",
+                "label": "Челябинск",
+                "disable": false,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "value": "12",
+        "label": "Свердловская область",
+        "disable": false,
+        "children": [
+          {
+            "value": "13",
+            "label": "Екатеринбург",
+            "disable": false,
+            "children": []
+          }
+        ]
+      },
+      {
+        "value": "14",
+        "label": "Ямало-Ненецкий автономный округ",
+        "disable": false,
+        "children": []
+      }
+    ]
+  },
+  {
+    "value": "15",
+    "label": "СНГ",
+    "disable": true,
+    "children": [
+      {
+        "value": "16",
+        "label": "Минская область",
+        "disable": false,
+        "children": []
+      }
+    ]
+  }
+]
