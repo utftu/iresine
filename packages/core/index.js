@@ -1,5 +1,5 @@
 import {setAdd} from './utils.js';
-import objectPath from '../utils/object-path';
+import objectPath from '@iresine/utils/object-path';
 
 class Model {
   constructor(storeId) {
@@ -57,6 +57,28 @@ class Store {
     model.prepared = this.join(storeId);
     return model.prepared;
   }
+  joinOld(storeId) {
+    const model = this.models.get(storeId);
+    const templateObj = {};
+    for (let i = 0; i < model.template.length; i++) {
+      const [path, value] = model.template[i];
+
+      if (Array.isArray(value)) {
+        objectPath.set(path, templateObj, []);
+      } else if (isObject(value)) {
+        objectPath.set(path, templateObj, {});
+      } else {
+        objectPath.set(path, templateObj, value);
+      }
+    }
+
+    for (let [path, storeId] of model.refs) {
+      const templateObjChild = this.get(this.models.get(storeId).storeId);
+      objectPath.set(path, templateObj, templateObjChild);
+    }
+
+    return templateObj;
+  }
   join(storeId) {
     const model = this.models.get(storeId);
     const templateObj = {};
@@ -79,13 +101,35 @@ class Store {
 
     return templateObj;
   }
+  joinTemplate(template) {
+    const rootStructure = Array.isArray(template[0][1]) ? [] : {};
+    for (let i = 1; i < template.length; i++) {
+      const [path, value] = template[i];
+
+      if (Array.isArray(value)) {
+        objectPath.set(path, rootStructure, []);
+      } else if (isObject(value)) {
+        objectPath.set(path, rootStructure, {});
+      } else {
+        objectPath.set(path, rootStructure, value);
+      }
+    }
+
+    for (let [path, storeId] of model.refs) {
+      const templateObjChild = this.get(this.models.get(storeId).storeId);
+      objectPath.set(path, templateObj, templateObjChild);
+    }
+
+    return templateObj;
+  }
   subscribe(modelIds, listener) {
     for (const modelId of modelIds) {
-      if (!this.models.has(modelId)) {
-        continue;
-      }
-
       this.models.get(modelId).listeners.add(listener);
+    }
+  }
+  unsubscribe(modelsIds, listener) {
+    for (const modelId of modelsIds) {
+      this.models.get(modelId).listeners.delete(listener);
     }
   }
 
@@ -149,6 +193,74 @@ class Store {
     }
   }
   _parse(data, {currentModel, omitNextTemplate = false} = {}) {
+    const fields = [[[], data]];
+    const template = [[[], {}]];
+    const refs = new Map();
+
+    for (let i = 0; i < fields.length; i++) {
+      if (i === 1) {
+        omitNextTemplate = false;
+      }
+      const field = fields[i];
+
+      const path = field[0];
+      const data = field[1];
+
+      const structureType = this.#getStructureType(data);
+
+      if (structureType === 'primitive') {
+        template.push([path, data]);
+        continue;
+      }
+      if (structureType === 'template' && omitNextTemplate === false) {
+        const childModelId = this.#getStoreKey(data);
+
+        refs.set(path, childModelId);
+
+        if (currentModel) {
+          currentModel.children.add(childModelId);
+          this._insert(childModelId, data, [currentModel.storeId]);
+        } else {
+          this._insert(childModelId, data, []);
+        }
+        continue;
+      }
+      if (structureType === 'object' || structureType === 'template') {
+        for (let key in data) {
+          let pathKey = key;
+          if (Array.isArray(data[key])) {
+            pathKey = `[]${key}`;
+          }
+          fields.push([[...path, pathKey], data[key]]);
+        }
+        if (isEmptyObject(data)) {
+          template.push([path, {}]);
+        }
+        continue;
+      }
+      if (structureType === 'array') {
+        if (data.length === 0) {
+          template.push([path, []]);
+        }
+        for (let i = 0; i < data.length; i++) {
+          let key = i.toString();
+          if (Array.isArray(data[i])) {
+            key = `[]${key}`;
+          }
+          fields.push([[...path, key], data[key]]);
+        }
+        continue;
+      }
+    }
+
+    if (currentModel) {
+      currentModel.template = template;
+    }
+
+    return refs;
+  }
+
+  parseNew(data, {currentModel, omitNextTemplate = false} = {}) {
     const fields = [[[], data]];
     const template = [];
     const refs = new Map();

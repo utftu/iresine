@@ -135,4 +135,17 @@ describe('core', () => {
       expect(callback.mock.calls[0][0].includes('comment:0')).toBe(true);
     });
   });
+  describe('unsubscribe', () => {
+    it('single', () => {
+      const store = new Store();
+
+      const refs = store.parse(oldUser);
+      const modelIds = [...refs.values()];
+      const callback = jest.fn();
+      store.subscribe(modelIds, callback);
+      store.unsubscribe(modelIds, callback);
+      store.parse(newUser);
+      expect(callback.mock.calls.length).toBe(0);
+    });
+  });
 });

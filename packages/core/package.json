@@ -1,5 +1,5 @@
 {
-  "name": "core",
+  "name": "@iresine/core",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "utils": "^1.0.0"
+    "@iresine/utils": "^1.0.0"
   }
 }
