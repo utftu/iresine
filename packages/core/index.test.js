@@ -148,4 +148,26 @@ describe('core', () => {
       expect(callback.mock.calls.length).toBe(0);
     });
   });
+  describe('recursive', () => {
+    it('two', () => {
+      const store = new Store();
+
+      const user0 = {
+        id: '0',
+        __typename: 'user',
+        name: '0',
+      };
+
+      const user1 = {
+        id: '1',
+        __typename: 'user',
+        name: '1',
+      };
+
+      user0.friend = user1;
+      user1.friend = user0;
+
+      store.parse();
+    });
+  });
 });

@@ -1,6 +1,6 @@
 import {setAdd} from './utils.js';
-import objectPath from '@iresine/utils/object-path/index.js';
-import {isObject, isEmptyObject} from '@iresine/utils/helpers/index.js';
+import objectPath from '@iresine/utils/object-path';
+import {isObject, isEmptyObject} from '@iresine/utils/helpers';
 
 class Model {
   constructor(storeId) {
@@ -46,8 +46,8 @@ class Store {
 
   parse(data) {
     const refs = this._parse(data);
-    const toUpdate = this._reconciliation(this.updated.values());
-    this._notify(toUpdate);
+    const parents = this._reconciliation(this.updated.values());
+    this._notify([this.updated, ...parents]);
     this.updated.clear();
     return refs;
   }
@@ -129,8 +129,8 @@ class Store {
       model = this.models.get(storeId);
     } else {
       model.children.clear();
+      this.updated.add(storeId);
     }
-    this.updated.add(storeId);
     model.prepared = rawTemplate;
 
     model.refs = this._parse(rawTemplate, {

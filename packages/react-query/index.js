@@ -3,12 +3,10 @@ export default class ReactQuery {
     const queries = reactQueryClient
       .getQueryCache()
       .findAll()
-      .map((query) => [query.options.queryHash, query.state.data]);
+      .map((query) => [query.queryHash, query.state.data]);
   }
 
   listeners = new Map();
 
-  parse(query, data) {}
-
-  subscribe(query, data) {}
+  add(query, data) {}
 }

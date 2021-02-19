@@ -1,3 +1,5 @@
+import {isObject} from '../helpers/index.js';
+
 function set(path, target, value) {
   if (path === '' || (Array.isArray(path) && path.length === 0)) {
     return;
@@ -27,74 +29,24 @@ function set(path, target, value) {
   return target;
 }
 
-function parse(data, {currentModel, omitNextTemplate = false} = {}) {
-  const fields = [[[], data]];
-  const template = [];
-  const refs = new Map();
+function joinTemplate(template) {
+  const rootStructure = Array.isArray(template[0][1]) ? [] : {};
+  for (let i = 1; i < template.length; i++) {
+    const [path, value] = template[i];
 
-  for (let i = 0; i < fields.length; i++) {
-    if (i === 1) {
-      omitNextTemplate = false;
-    }
-    const field = fields[i];
-
-    const path = field[0];
-    const data = field[1];
-
-    const structureType = this.#getStructureType(data);
-
-    if (structureType === 'primitive') {
-      template.push([path, data]);
-      continue;
-    }
-    if (structureType === 'template' && omitNextTemplate === false) {
-      const childModelId = this.#getStoreKey(data);
-
-      refs.set(path, childModelId);
-
-      if (currentModel) {
-        currentModel.children.add(childModelId);
-        this._insert(childModelId, data, [currentModel.storeId]);
-      } else {
-        this._insert(childModelId, data, []);
-      }
-      continue;
-    }
-    if (structureType === 'object' || structureType === 'template') {
-      for (let key in data) {
-        let pathKey = key;
-        if (Array.isArray(data[key])) {
-          pathKey = `[]${key}`;
-        }
-        fields.push([[...path, pathKey], data[key]]);
-      }
-      if (isEmptyObject(data)) {
-        template.push([path, {}]);
-      }
-      continue;
-    }
-    if (structureType === 'array') {
-      if (data.length === 0) {
-        template.push([path, []]);
-      }
-      for (let i = 0; i < data.length; i++) {
-        let key = i.toString();
-        if (Array.isArray(data[i])) {
-          key = `[]${key}`;
-        }
-        fields.push([[...path, key], data[key]]);
-      }
-      continue;
+    if (Array.isArray(value)) {
+      set(path, rootStructure, []);
+    } else if (isObject(value)) {
+      set(path, rootStructure, {});
+    } else {
+      set(path, rootStructure, value);
     }
   }
 
-  if (currentModel) {
-    currentModel.template = template;
-  }
-
-  return refs;
+  return rootStructure;
 }
 
 export default {
   set,
+  joinTemplate,
 };
