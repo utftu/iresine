@@ -1,6 +1,6 @@
 {
   "name": "@iresine/helpers",
-  "version": "1.0.1",
+  "version": "1.0.2-alpha.0",
   "description": "",
   "main": "dist/esm/index.mjs",
   "type": "module",
@@ -15,5 +15,5 @@
   },
   "author": "",
   "license": "MIT",
-  "gitHead": "b1388c93a8af2e442c643a2c86fdd666caf01214"
+  "gitHead": "4be98ecb2dd1b13963b784cc93a052191b967649"
 }

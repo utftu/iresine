@@ -1,6 +1,6 @@
 {
   "name": "@iresine/react-query-wrapper",
-  "version": "1.0.1",
+  "version": "1.0.2-alpha.0",
   "description": "",
   "main": "dist/index.mjs",
   "type": "module",
@@ -18,16 +18,16 @@
     "access": "public"
   },
   "dependencies": {
-    "@iresine/helpers": "^1.0.1"
+    "@iresine/helpers": "^1.0.2-alpha.0"
   },
   "peerDependencies": {
     "@iresine/core": ">=1.0.0",
     "react-query": ">=3.0.0"
   },
   "devDependencies": {
-    "@iresine/core": "^1.0.1",
+    "@iresine/core": "^1.0.2-alpha.0",
     "react-dom": "^17.0.1",
     "react-query": ">=3.0.0"
   },
-  "gitHead": "b1388c93a8af2e442c643a2c86fdd666caf01214"
+  "gitHead": "4be98ecb2dd1b13963b784cc93a052191b967649"
 }
