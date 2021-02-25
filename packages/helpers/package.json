@@ -1,13 +1,15 @@
 {
   "name": "@iresine/helpers",
-  "version": "1.0.0",
+  "version": "1.0.1-alpha.0",
   "description": "",
   "main": "dist/esm/index.mjs",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "files": ["dist/**/*"],
+  "files": [
+    "dist/**/*"
+  ],
   "author": "",
   "license": "ISC"
 }

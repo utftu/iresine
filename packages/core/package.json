@@ -1,6 +1,6 @@
 {
   "name": "@iresine/core",
-  "version": "1.0.0",
+  "version": "1.0.1-alpha.0",
   "description": "",
   "main": "dist/esm/index.mjs",
   "type": "module",
@@ -8,11 +8,13 @@
     "init": "npm install",
     "build": "webpack"
   },
-  "files": ["dist/**/*"],
+  "files": [
+    "dist/**/*"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@iresine/helpers": ">=1.0.0",
-    "@iresine/object-path": "^1.0.0"
+    "@iresine/helpers": "^1.0.1-alpha.0",
+    "@iresine/object-path": "^1.0.1-alpha.0"
   }
 }
