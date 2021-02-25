@@ -1,6 +1,5 @@
-import {setAdd} from './utils.js';
-import objectPath from '@iresine/utils/object-path';
-import {isObject, isEmptyObject} from '@iresine/utils/helpers';
+import objectPath from '@iresine/object-path';
+import {isObject, isEmptyObject, setAdd} from '@iresine/helpers';
 
 class Model {
   constructor(storeId) {
@@ -15,24 +14,24 @@ class Model {
 }
 
 class Store {
-  constructor({getModelId = (template) => template.id, getModelType = (template) => template.__typename} = {}) {
-    this.#getModelId = getModelId;
-    this.#getModelType = getModelType;
+  constructor({getModelId = (template) => template.id, getModelType = (template) => template.type} = {}) {
+    this._getModelId = getModelId;
+    this._getModelType = getModelType;
   }
 
-  #getModelId = (template) => template.id;
-  #getModelType = (template) => template.__typename;
-  #isTemplate(data) {
-    return !!(this.#getModelId(data) && this.#getModelType(data));
+  _getModelId = (template) => template.id;
+  _getModelType = (template) => template.type;
+  _isTemplate(data) {
+    return !!(this._getModelId(data) && this._getModelType(data));
   }
-  #getStoreKey(template) {
-    return `${this.#getModelType(template)}:${this.#getModelId(template)}`;
+  _getStoreKey(template) {
+    return `${this._getModelType(template)}:${this._getModelId(template)}`;
   }
-  #getStructureType(data) {
+  _getStructureType(data) {
     if (Array.isArray(data)) {
       return 'array';
     }
-    if (this.#isTemplate(data)) {
+    if (this._isTemplate(data)) {
       return 'template';
     }
     if (isObject(data)) {
@@ -42,30 +41,32 @@ class Store {
   }
 
   models = new Map();
-  update = new Set();
-  toNotify = new Set();
+  updated = new Set();
 
   parse(data) {
-    const refs = this._parse(data);
-    const parents = this._reconciliation(refs.values());
-    this._notify([...parents, ...this.update]);
-    return refs;
+    const response = this._parse(data);
+    const parents = this._reconciliation(this.updated.values());
+    this._notify(new Set([...this.updated, ...parents]));
+    this.updated.clear();
+    return response;
   }
   get(storeId) {
     const model = this.models.get(storeId);
     if (model.prepared) {
       return model.prepared;
     }
-    model.prepared = this.join(storeId);
+    // insert in model prepared
+    this.join(storeId);
     return model.prepared;
   }
   join(storeId) {
     const model = this.models.get(storeId);
     const templateObj = objectPath.joinTemplate(model.template);
+    model.prepared = templateObj;
 
     for (let [path, storeId] of model.refs) {
       const templateObjChild = this.get(this.models.get(storeId).storeId);
-      objectPath.set(path, templateObj, templateObjChild);
+      objectPath.set(templateObj, path, templateObjChild);
     }
 
     return templateObj;
@@ -80,6 +81,19 @@ class Store {
       this.models.get(modelId).listeners.delete(listener);
     }
   }
+  joinRefs(template, refs) {
+    if (refs.size === 1 && [...refs.keys()][0].length === 0) {
+      debugger;
+      return this.get([...refs.values()][0]);
+    }
+
+    const base = objectPath.joinTemplate(template);
+    for (const [path, modelId] of refs.entries()) {
+      objectPath.set(base, path, this.get(modelId));
+    }
+
+    return base;
+  }
 
   _notify(storeIds) {
     const listeners = new Set();
@@ -92,15 +106,20 @@ class Store {
     for (const listener of listeners) {
       listener([...storeIds]);
     }
-    this.toNotify.clear();
   }
   _reconciliation(storedIds) {
     const parents = new Set();
     for (const storeId of storedIds) {
-      parents.add(storeId);
+      const model = this.models.get(storeId);
+      for (const parentId of model.parents) {
+        parents.add(parentId);
+      }
     }
 
     for (const modelId of parents) {
+      if (this.updated.has(modelId)) {
+        continue;
+      }
       const model = this.models.get(modelId);
 
       for (const parentModelId of model.parents.values()) {
@@ -111,30 +130,36 @@ class Store {
     }
 
     for (const modelId of parents) {
-      const model = this.models.get(modelId);
-      model.prepared = this.join(modelId);
-
-      this.toNotify.add(modelId);
+      if (this.updated.has(modelId)) {
+        continue;
+      }
+      this.join(modelId);
     }
 
     return parents;
   }
   _insert(storeId, rawTemplate, parentModelIds) {
+    if (this.updated.has(storeId)) {
+      return;
+    }
+
     let model = this.models.get(storeId);
 
     if (!model) {
       this.models.set(storeId, new Model(storeId));
       model = this.models.get(storeId);
     } else {
-      model.children = new Set();
-      this.toNotify.add(storeId);
+      model.children.clear();
     }
+    this.updated.add(storeId);
     model.prepared = rawTemplate;
 
-    model.refs = this._parse(rawTemplate, {
+    const {refs, template} = this._parse(rawTemplate, {
       currentModel: model,
       omitNextTemplate: true,
     });
+    model.refs = refs;
+    model.template = template;
 
     if (parentModelIds) {
       setAdd(model.parents, parentModelIds);
@@ -142,7 +167,7 @@ class Store {
   }
   _parse(data, {currentModel, omitNextTemplate = false} = {}) {
     const fields = [[[], data]];
-    const template = [[[], {}]];
+    const template = [[[], Array.isArray(data) ? [] : {}]];
     const refs = new Map();
 
     for (let i = 0; i < fields.length; i++) {
@@ -154,14 +179,14 @@ class Store {
       const path = field[0];
       const data = field[1];
 
-      const structureType = this.#getStructureType(data);
+      const structureType = this._getStructureType(data);
 
       if (structureType === 'primitive') {
         template.push([path, data]);
         continue;
       }
       if (structureType === 'template' && omitNextTemplate === false) {
-        const childModelId = this.#getStoreKey(data);
+        const childModelId = this._getStoreKey(data);
 
         refs.set(path, childModelId);
 
@@ -201,79 +226,7 @@ class Store {
       }
     }
 
-    if (currentModel) {
-      currentModel.template = template;
-    }
-
-    return refs;
-  }
-
-  parseNew(data, {currentModel, omitNextTemplate = false} = {}) {
-    const fields = [[[], data]];
-    const template = [];
-    const refs = new Map();
-
-    for (let i = 0; i < fields.length; i++) {
-      if (i === 1) {
-        omitNextTemplate = false;
-      }
-      const field = fields[i];
-
-      const path = field[0];
-      const data = field[1];
-
-      const structureType = this.#getStructureType(data);
-
-      if (structureType === 'primitive') {
-        template.push([path, data]);
-        continue;
-      }
-      if (structureType === 'template' && omitNextTemplate === false) {
-        const childModelId = this.#getStoreKey(data);
-
-        refs.set(path, childModelId);
-
-        if (currentModel) {
-          currentModel.children.add(childModelId);
-          this._insert(childModelId, data, [currentModel.storeId]);
-        } else {
-          this._insert(childModelId, data, []);
-        }
-        continue;
-      }
-      if (structureType === 'object' || structureType === 'template') {
-        for (let key in data) {
-          let pathKey = key;
-          if (Array.isArray(data[key])) {
-            pathKey = `[]${key}`;
-          }
-          fields.push([[...path, pathKey], data[key]]);
-        }
-        if (isEmptyObject(data)) {
-          template.push([path, {}]);
-        }
-        continue;
-      }
-      if (structureType === 'array') {
-        if (data.length === 0) {
-          template.push([path, []]);
-        }
-        for (let i = 0; i < data.length; i++) {
-          let key = i.toString();
-          if (Array.isArray(data[i])) {
-            key = `[]${key}`;
-          }
-          fields.push([[...path, key], data[key]]);
-        }
-        continue;
-      }
-    }
-
-    if (currentModel) {
-      currentModel.template = template;
-    }
-
-    return refs;
+    return {refs, template};
   }
 }
 

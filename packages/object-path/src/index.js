@@ -1,6 +1,6 @@
-import {isObject} from '../helpers/index.js';
+import {isObject} from '@iresine/helpers';
 
-function set(path, target, value) {
+function set(target, path, value) {
   if (path === '' || (Array.isArray(path) && path.length === 0)) {
     return;
   }
@@ -18,7 +18,7 @@ function set(path, target, value) {
       break;
     }
 
-    if (isArrPath) {
+    if (isArrPath && !entity[key]) {
       entity[key] = [];
     } else if (!entity[key]) {
       entity[key] = {};
@@ -35,11 +35,11 @@ function joinTemplate(template) {
     const [path, value] = template[i];
 
     if (Array.isArray(value)) {
-      set(path, rootStructure, []);
+      set(rootStructure, path, []);
     } else if (isObject(value)) {
-      set(path, rootStructure, {});
+      set(rootStructure, path, {});
     } else {
-      set(path, rootStructure, value);
+      set(rootStructure, path, value);
     }
   }
 

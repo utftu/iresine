@@ -1,14 +1,19 @@
 {
-  "name": "@iresine/react-query",
+  "name": "@iresine/react-query-wrapper",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.mjs",
   "type": "module",
   "scripts": {
+    "init": "npm install",
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@iresine/helpers": ">=1.0.0"
+  },
   "peerDependencies": {
     "@iresine/core": ">=1.0.0",
     "react-query": ">=3.0.0"

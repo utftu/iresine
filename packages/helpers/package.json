@@ -1,8 +1,8 @@
 {
-  "name": "@iresine/utils",
+  "name": "@iresine/helpers",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/esm/index.mjs",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
