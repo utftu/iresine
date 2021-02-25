@@ -1,7 +1,7 @@
-import ReactQueryWrapper from './src';
+import ReactQueryWrapper from './index.js';
 import {QueryClient} from 'react-query';
-import Store from '@iresine/core/dist/cjs/index.cjs';
-import {setQueryDataNotCopy} from './src/helpers/index.js';
+import Store from '@iresine/core';
+import {setQueryDataNotCopy} from './helpers/index.js';
 
 const oldUser = {
   id: '0',
