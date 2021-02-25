@@ -8,6 +8,7 @@
     "init": "npm install",
     "build": "webpack"
   },
+  "files": ["dist/**/*"],
   "author": "",
   "license": "ISC",
   "dependencies": {

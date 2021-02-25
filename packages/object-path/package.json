@@ -10,6 +10,7 @@
   "dependencies": {
     "@iresine/helpers": "^1.0.0"
   },
+  "files": ["dist/**/*"],
   "keywords": [],
   "author": "",
   "license": "ISC"

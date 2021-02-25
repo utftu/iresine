@@ -11,6 +11,7 @@
   },
   "author": "",
   "license": "ISC",
+  "files": ["dist/**/*"],
   "dependencies": {
     "@iresine/helpers": ">=1.0.0"
   },
