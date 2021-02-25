@@ -13,7 +13,11 @@
   "files": [
     "dist/**/*"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "gitHead": "2c9ad1cd9e605c52b065f37a6dac6e15b412424a"
 }

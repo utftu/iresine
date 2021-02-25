@@ -11,10 +11,14 @@
   "files": [
     "dist/**/*"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@iresine/helpers": "^1.0.1-alpha.0",
     "@iresine/object-path": "^1.0.1-alpha.0"
-  }
+  },
+  "gitHead": "2c9ad1cd9e605c52b065f37a6dac6e15b412424a"
 }
