@@ -6,9 +6,11 @@
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "init": "npm install && lerna run install",
     "boot": "lerna bootstrap --hoist",
-    "build": "webpack --config ./scripts/build.cjs",
-    "format": "npx prettier --write \"./**/*.{js,mjs,cjs}\""
+    "build": "node scripts/build.cjs",
+    "old-build": "webpack --config ./scripts/build.cjs",
+    "format": "prettier --write \"./**/*.{js,mjs,cjs}\""
   },
   "author": "",
   "license": "ISC",
