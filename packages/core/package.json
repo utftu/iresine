@@ -15,10 +15,10 @@
     "access": "public"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@iresine/helpers": "^1.0.1-beta.0",
     "@iresine/object-path": "^1.0.1-beta.0"
   },
-  "gitHead": "2c9ad1cd9e605c52b065f37a6dac6e15b412424a"
+  "gitHead": "b1388c93a8af2e442c643a2c86fdd666caf01214"
 }
