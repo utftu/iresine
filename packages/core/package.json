@@ -5,8 +5,7 @@
   "main": "dist/esm/index.mjs",
   "type": "module",
   "scripts": {
-    "init": "npm install",
-    "build": "webpack"
+    "init": "npm install"
   },
   "files": [
     "dist/**/*"
@@ -20,5 +19,5 @@
     "@iresine/helpers": "^1.0.2",
     "@iresine/object-path": "^1.0.2"
   },
-  "gitHead": "4fb7eb789f84b91e8f31bf2ee7dec14279a2e5a1"
+  "gitHead": "c795adce2944c04948f54d9b6b09779ccaf09818"
 }
