@@ -83,7 +83,6 @@ class Store {
   }
   joinRefs(template, refs) {
     if (refs.size === 1 && [...refs.keys()][0].length === 0) {
-      debugger;
       return this.get([...refs.values()][0]);
     }
 
