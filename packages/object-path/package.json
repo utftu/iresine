@@ -1,6 +1,6 @@
 {
   "name": "@iresine/object-path",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "dist/esm/index.mjs",
   "type": "module",
@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@iresine/helpers": "^1.0.2"
+    "@iresine/helpers": "^1.0.3"
   },
   "files": [
     "dist/**/*"

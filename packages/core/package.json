@@ -1,6 +1,6 @@
 {
   "name": "@iresine/core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "dist/esm/index.mjs",
   "type": "module",
@@ -16,8 +16,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@iresine/helpers": "^1.0.2",
-    "@iresine/object-path": "^1.0.2"
+    "@iresine/helpers": "^1.0.3",
+    "@iresine/object-path": "^1.0.3"
   },
   "gitHead": "c795adce2944c04948f54d9b6b09779ccaf09818"
 }
