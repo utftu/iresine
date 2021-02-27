@@ -1,5 +1,5 @@
 {
-  "name": "store",
+  "name": "iresene",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,7 @@
     "boot": "lerna bootstrap --hoist",
     "build": "node scripts/build.cjs",
     "old-build": "webpack --config ./scripts/build.cjs",
-    "format": "prettier --write \"./**/*.{js,mjs,cjs}\""
+    "format": "prettier --write \"./**/*.{js,mjs,cjs,md}\""
   },
   "author": "",
   "license": "ISC",

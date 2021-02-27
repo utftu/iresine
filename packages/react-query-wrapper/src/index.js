@@ -44,7 +44,10 @@ class ReactQueryWrapper {
       return;
     }
     const queryMapState = this.store.get(query);
-    this.coreStore.unsubscribe([...queryMapState.refs.values()], queryMapState.listener);
+    this.coreStore.unsubscribe(
+      [...queryMapState.refs.values()],
+      queryMapState.listener
+    );
     this.store.delete(query);
   }
 
@@ -57,7 +60,11 @@ class ReactQueryWrapper {
       return;
     }
     this.remove(query.queryHash);
-    this.add(query.queryHash, this.queryClient.getQueryData(query.queryKey), query.queryKey);
+    this.add(
+      query.queryHash,
+      this.queryClient.getQueryData(query.queryKey),
+      query.queryKey
+    );
   };
 }
 

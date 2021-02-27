@@ -14,7 +14,10 @@ class Model {
 }
 
 class Store {
-  constructor({getModelId = (template) => template.id, getModelType = (template) => template.type} = {}) {
+  constructor({
+    getModelId = (template) => template.id,
+    getModelType = (template) => template.type,
+  } = {}) {
     this._getModelId = getModelId;
     this._getModelType = getModelType;
   }

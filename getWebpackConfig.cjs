@@ -16,7 +16,9 @@ function getConfig({libraryTarget, dirname, entry, filename}) {
             loader: 'babel-loader',
             options: {
               presets: ['@babel/preset-env'],
-              plugins: [['@babel/plugin-proposal-class-properties', {loose: true}]],
+              plugins: [
+                ['@babel/plugin-proposal-class-properties', {loose: true}],
+              ],
             },
           },
         },

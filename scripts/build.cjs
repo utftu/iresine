@@ -6,7 +6,9 @@ const reactQueryWrapperConfigs = require('../packages/react-query-wrapper/webpac
 
 async function runSeq(configs) {
   for (const config of configs) {
-    const [err, stats] = await new Promise((resolve) => webpack(config).run((...args) => resolve(args)));
+    const [err, stats] = await new Promise((resolve) =>
+      webpack(config).run((...args) => resolve(args))
+    );
 
     if (err) {
       console.error(err.stack || err);
@@ -36,5 +38,10 @@ async function runSeq(configs) {
 }
 
 (async () => {
-  await runSeq([helpersConfigs, objectPathConfigs, coreConfigs, reactQueryWrapperConfigs]);
+  await runSeq([
+    helpersConfigs,
+    objectPathConfigs,
+    coreConfigs,
+    reactQueryWrapperConfigs,
+  ]);
 })();

@@ -9,7 +9,8 @@ function set(target, path, value) {
   for (let i = 0; i < pathArr.length; i++) {
     const currentPath = pathArr[i];
 
-    const currentPathString = typeof currentPath === 'number' ? currentPath.toString() : currentPath;
+    const currentPathString =
+      typeof currentPath === 'number' ? currentPath.toString() : currentPath;
     const isArrPath = currentPathString.startsWith('[]');
     const key = isArrPath ? currentPath.slice(2) : currentPath;
 
