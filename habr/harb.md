@@ -263,10 +263,8 @@ const newRequest = {
 iresine.parse(oldRequest);
 iresine.parse(newRequest);
 
-iresine.get('user:0' /*identifier for old and new user*/) ===
-  newRequest.users['0']; // true
-iresine.get('comment:0' /*identifier for old and new comment*/) ===
-  newRequest.comments['0']; // true
+iresine.get('user:0' /*identifier for old and new user*/) === newRequest.users['0']; // true
+iresine.get('comment:0' /*identifier for old and new comment*/) === newRequest.comments['0']; // true
 ```
 
 Как видим из идентификаторов, по которым мы получаем сущности из хранилища,
