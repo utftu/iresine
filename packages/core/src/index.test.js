@@ -19,7 +19,7 @@ const newUser = {
 const newComment = {
   id: '0',
   type: 'comment',
-  text: 'newComment',
+  text: 'newText',
 };
 
 describe('core', () => {
@@ -62,27 +62,23 @@ describe('core', () => {
     });
     it('update multi templates', () => {
       const store = new Store();
-      const multi = {
-        object: {
-          0: oldUser,
-        },
-        array: {
-          0: oldComment,
+      const oldRequest = {
+        users: [oldUser],
+        comments: {
+          0: oldComment
         },
       };
-      const multi1 = {
-        object: {
-          0: newUser,
+      const newRequest = {
+        users: {
+          0: newUser
         },
-        array: {
-          0: newComment,
-        },
+        comments: [newComment]
       };
 
-      store.parse(multi);
-      store.parse(multi1);
-      expect(store.join('user:0')).toEqual(multi1.object['0']);
-      expect(store.join('comment:0')).toEqual(multi1.array['0']);
+      store.parse(oldRequest);
+      store.parse(newRequest);
+      expect(store.join('user:0')).toEqual(newRequest.users['0']);
+      expect(store.join('comment:0')).toEqual(newRequest.comments['0']);
     });
   });
   describe('.get()', () => {

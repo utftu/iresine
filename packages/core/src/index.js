@@ -15,20 +15,20 @@ class Model {
 
 class Store {
   constructor({
-    getModelId = (template) => template.id,
-    getModelType = (template) => template.type,
+    getId = (template) => template.id,
+    getType = (template) => template.type,
   } = {}) {
-    this._getModelId = getModelId;
-    this._getModelType = getModelType;
+    this._getId = getId;
+    this._getType = getType;
   }
 
-  _getModelId = (template) => template.id;
-  _getModelType = (template) => template.type;
+  _getId = (template) => template.id;
+  _getType = (template) => template.type;
   _isTemplate(data) {
-    return !!(this._getModelId(data) && this._getModelType(data));
+    return !!(this._getId(data) && this._getType(data));
   }
   _getStoreKey(template) {
-    return `${this._getModelType(template)}:${this._getModelId(template)}`;
+    return `${this._getType(template)}:${this._getId(template)}`;
   }
   _getStructureType(data) {
     if (Array.isArray(data)) {
