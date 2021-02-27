@@ -1,5 +1,5 @@
 {
-  "name": "@iresine/react-query-wrapper",
+  "name": "@iresine/react-query",
   "version": "1.0.3",
   "description": "",
   "main": "dist/index.mjs",

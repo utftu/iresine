@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "init": "npm install && lerna run install",
+    "init": "npm install && lerna run init",
     "boot": "lerna bootstrap --hoist",
     "build": "node scripts/build.cjs",
     "old-build": "webpack --config ./scripts/build.cjs",
