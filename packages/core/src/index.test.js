@@ -65,14 +65,14 @@ describe('core', () => {
       const oldRequest = {
         users: [oldUser],
         comments: {
-          0: oldComment
+          0: oldComment,
         },
       };
       const newRequest = {
         users: {
-          0: newUser
+          0: newUser,
         },
-        comments: [newComment]
+        comments: [newComment],
       };
 
       store.parse(oldRequest);

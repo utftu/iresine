@@ -9,8 +9,9 @@
     "init": "npm install && lerna run init",
     "boot": "lerna bootstrap --hoist",
     "build": "node scripts/build.cjs",
+    "rm-build": "rm -rf ./packages/core/dist && rm -rf ./packages/react-query/dist && rm -rf ./packages/object-path/dist && rm -rf ./packages/helpers/dist",
     "old-build": "webpack --config ./scripts/build.cjs",
-    "format": "prettier --write \"./**/*.{js,mjs,cjs,md}\""
+    "format": "prettier --write \"./**/*.{js,mjs,cjs,md,json}\""
   },
   "author": "",
   "license": "ISC",
