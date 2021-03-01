@@ -183,10 +183,10 @@ It was this option that I chose as preferable for myself.
 ### Where to add types to data?
 
 The problem of data normalization is especially common in client applications.
-Поэтому рассмотрим вопрос - в какой момент добавлять информацию о типах в данные
-для клиента. Мы можем выбрать один из указанных вариантов для добавления типов.
+Therefore, consider the question - at what point to add information about types to data?
+We can choose one of the above options to add types.
 
-- На сервере, при отдаче данных:
+- On the server, when sending data:
 
 ```js
 app.get('/users', (req, res) => {
@@ -199,7 +199,7 @@ app.get('/users', (req, res) => {
 });
 ```
 
-- На клиенте, при получении данных:
+- On the client, when receiving data:
 
 ```js
 function getUsers() {
@@ -212,31 +212,30 @@ function getUsers() {
 }
 ```
 
-Как мне кажется вариант добавления данных на сервере является предпочтительным.
-Api, которое отдает данные, знает о том какие данные и какого типа отдает.
-Однако в некоторых случаях нет возможности изменить код сервера для отдачи типа,
-в таких случаях можно добавить типы на клиенте.
+As it seems to me, the option of adding data on the server is preferable.
+Api, which gives data, knows what data and what type it is giving.
+However, in some cases it is not possible to change the server code to give 
+the type, in such cases you can add types on the client.
 
-Теперь разберемся как все это автоматизировать.
+Now let's figure out how to automate all this.
 
 ## iresine
 
-`iresine` это библиотека созданная для нормализации данных и оповещении об их
-изменении.
+`iresine` is a library designed to normalize data and alert when it changes.
 
-В данный момент iresine состоит из следующих модулей:
+Iresine currently consists of the following modules:
 
 - @iresine/core
 - @iresine/react-query
 
-Так iresine работает с react-query:
+This is how iresine works with react-query:
 
-![iresine-solve-problem](./static/iresine-solve-problem.svg)
+<img alt='iresine-structure' src='https://raw.githubusercontent.com/utftufutukgyftryidytftuv/iresine/9e1cca578ea0723b731a2e7c187f443d01b31337/static/iresine-solve-problem.svg'/>
 
 ### @iresine/core
 
-Основной модуль библиотеки, именно он отвечает за парсинг данных, их
-нормализацию и оповещении подписчиков об изменении конкретной сущности.
+The main module of the library, it is it that is responsible for parsing data, normalizing it and 
+notifying subscribers about a change in a specific entity.
 
 ```js
 const iresine = new Iresine();
@@ -263,16 +262,16 @@ iresine.get('comment:0' /*identifier for old and new comment*/) ===
   newRequest.comments['0']; // true
 ```
 
-Как видим из идентификаторов, по которым мы получаем сущности из хранилища,
-@iresine/core использует следующую схему для создания идентификаторов:
+As you can see from the identifiers by which we get entities from the storage, 
+@iresine/core uses the following scheme to create identifiers:
 
 ```js
 entityType + ':' + entityId;
 ```
 
-По умолчанию @iresine/core берет тип из поля `type`, а id из поля `id`. Это
-поведение можно изменить, передав собственные функции. Например попробуем
-использовать такой же идентификатор как в apollo:
+By default, @iresine/core takes the type from the `type` field, and the id from the` id` field. 
+This behavior can be changed by passing in your own functions. 
+For example, let's try to use the same identifier as in apollo:
 
 ```js
 const iresine = new Iresine({
@@ -281,8 +280,7 @@ const iresine = new Iresine({
 });
 ```
 
-Так же мы можем обрабатывать и глобально уникальное поле id, применив небольшой
-хак:
+We can also handle the globally unique id field with a little hack:
 
 ```js
 const iresine = new Iresine({
@@ -291,8 +289,8 @@ const iresine = new Iresine({
 });
 ```
 
-А что @iresine/core делает с сущностями, где идентификатор не обнаружен?
-Например такими:
+What does @iresine/core do with entities where no identifier is found?
+For example like this:
 
 ```js
 const user = {
@@ -311,8 +309,8 @@ const user = {
 };
 ```
 
-user имеет своей идентификатор в хранилище, а как быть с jobs? У них нет ни поля
-type ни поля field! @iresine/core следует простому правилу: если у сущности нет
+User has its own identifier in the storage, but what about jobs? У них нет ни поля
+type ни поля id! @iresine/core следует простому правилу: если у сущности нет
 идентификатора, то она становится частью ближайшей родительской сущности с
 идентификатором.
 
