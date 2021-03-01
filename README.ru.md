@@ -1,6 +1,7 @@
 ## Описание проблемы
 
-![problem](./static/irsene-problem.svg)<br/> Представим себе такую
+<img alt='problem' src='https://raw.githubusercontent.com/utftufutukgyftryidytftuv/iresine/b64d7df3babb80d4493d33447cd465bc4c1062dd/static/irsene-problem.svg'/>
+<br/> Представим себе такую
 последовательность:
 
 1. Клиентское приложение запрашивает список пользователей запросом к /users и
@@ -236,7 +237,7 @@ Api, которое отдает данные, знает о том какие �
 
 Так iresine работает с react-query:
 
-![iresine-solve-problem](./static/iresine-solve-problem.svg)
+<img alt='iresine-structure' src='https://raw.githubusercontent.com/utftufutukgyftryidytftuv/iresine/9e1cca578ea0723b731a2e7c187f443d01b31337/static/iresine-solve-problem.svg'/>
 
 ### @iresine/core
 
@@ -350,7 +351,7 @@ new IresineReactQueryWrapper(iresineStore, queryClient);
 
 Схема взаимодействия выглядит так(была приведена выше):
 
-![iresine-solve-problem](./static/iresine-solve-problem.svg)
+<img alt='iresine-structure' src='https://raw.githubusercontent.com/utftufutukgyftryidytftuv/iresine/9e1cca578ea0723b731a2e7c187f443d01b31337/static/iresine-solve-problem.svg'/>
 
 ## Итог
 
