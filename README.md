@@ -232,7 +232,7 @@ This is how iresine works with react-query:
 
 <img alt='iresine-structure' src='https://raw.githubusercontent.com/utftufutukgyftryidytftuv/iresine/9e1cca578ea0723b731a2e7c187f443d01b31337/static/iresine-solve-problem.svg'/>
 
-### @iresine/core
+### [@iresine/core](https://github.com/utftufutukgyftryidytftuv/iresine/tree/master/packages/core)
 
 The main module of the library, it is it that is responsible for parsing data, normalizing it and 
 notifying subscribers about a change in a specific entity.
@@ -316,7 +316,7 @@ entity with an identifier.
 @resine/core is a generic library that knows how to parse data and point out subscribers.
 But using it directly is rather tedious and tedious. Let's see how to make this process more convenient!
 
-## @iresine/react-query
+### [@iresine/react-query](https://github.com/utftufutukgyftryidytftuv/iresine/tree/master/packages/react-query)
 
 react-query is a great library that I would encourage everyone to familiarize themselves with. 
 But it lacks data normalization, and it was this fact that inspired me to write iresine.
@@ -344,4 +344,4 @@ The interaction scheme looks like this (it was given above):
 
 Normalizing data on the client is a problem. Now it is being solved in different ways with varying degrees of success.
 In the material written above, the author offers his own way to solve this problem.If you shorten the whole sentence 
-to a few words, they will sound like **_add type information to the data, and then use iresine_**
+to a few words, they will sound like **_add type information to the data, and then use [iresine](https://github.com/utftufutukgyftryidytftuv/iresine)_**
