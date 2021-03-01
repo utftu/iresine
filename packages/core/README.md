@@ -2,10 +2,21 @@
 
 `@iresine/core` is a library for normalize and notify about updates.
 
-## @iresine/core API
+99% of the time, you shouldn't use @ iresine / core directly. At the moment, we recommend using
+@iresine/core bundled @iresine/react-query
 
-##### types StoreId = string
-Идентификатор сущности
+## Install
+```
+npm i @iresine/core
+```
+
+## API
+
+##### type Entity = any
+Entity that has an identifier
+
+##### types EntityId = string
+Entity ID
 
 for this entity
 ```js
@@ -14,13 +25,13 @@ for this entity
   type: 'user'
 }
 ```
-storeId is
+entityId is
 ```js
 'user:0'
 ```
 
 ##### type Template = Array<Array<string, any>>
-Массив массивов, где в первом значении находится путь, а во втором значение
+Array of arrays where the first value contains the path and the second value contains the value
 
 ```js
 const iresine = new Iresine()
@@ -43,7 +54,8 @@ const {template} = iresine.parse(data)
 
 ##### type Refs = Map<Array<string>, string>
 
-refs is map. Ключи в ней служат путями к месту, где располагается ссылка на другую сущность. Значения это идентификатора сущности на который ссылаемся.
+refs is map. The keys are paths to the place where the link to another entity is located. 
+Values are the identifier of the entity we are referring to.
 
 ```js
 const iresine = new Iresine()
@@ -53,8 +65,7 @@ const data = {
        0: {
           id: 0,
           type: 'comment'
-       },
-       1: 'hello'
+       }
      }
    }
 }
@@ -67,15 +78,12 @@ const {refs} = iresine.parse(data)
 // ])
 ```
 
-##### Entity = any
-Сущность, которая имеет идентификатор
-
 ##### parse(entity: Entity): {template: Template, refs: Refs}
-Основная функция, которая разбирает данные и сохраняет их в хранилище. 
-По завершению она уведомляет всех необходимых подписчиков.
+The main function that parses data and stores it in storage.
+Upon completion, it notifies all required subscribers.
 
-##### get(storeId: StoreId): Entity
-Получение сущности по ее идентификатору
+##### get(EntityId: EntityId): Entity
+Get an entity by its identifier
 
 ```js
 const iresine = new Iresine()
@@ -88,9 +96,9 @@ iresine.parse(user)
 iresine.get('user:0') === user // true
 ```
 
-##### join(storeId: StoreId): Entity
-Получение сущности по ее идентификатору. В отличие от .get() создает новую сущность при вызове. 
-Новая сущность сохраняется в хранилище.
+##### join(EntityId: EntityId): Entity
+Getting an entity by its identifier. Unlike .get () creates a new entity when called.
+The new entity is stored in the store.
 
 ```js
 const iresine = new Iresine()
@@ -103,86 +111,29 @@ iresine.parse(user)
 iresine.get('user:0') === user // false, but have same structure
 ```
 
-
 ##### joinRefs(template: Template, refs: Refs)
-Соединяет значения из template, подставляя сущности из refs
-
-
-
-##### subscribe(storeIds: []StoreId, listener)
-Подписывается на изменения указанных сущностей.
-
-##### unsubscribe(storeIds: []StoreId, listener)
-Отписывается на изменения указанных сущностей.
-
-## What problem does `@iresine/core` solve?
-
-1. Make request for users with id from 1 to 10
-2. User with id: 3 change name
-3. Make request for user with id: 3
-4. Ooops, now in our system exists old user in first request data and new user
-   in second request data
-
-## Install
-
-```console
-npm i @iresine/core
-```
-
-## How use `@iresine/core`?
-
-In most cases it uses with other wrapper libraries and make main work to
-normalize data
-
-### Example
+Concatenates values from template, substituting entities from refs
 
 ```js
-import IresineStore from 'packages/core/src/index';
-import IresineReactQueryWrapper from '@iresone/react-query-wrapper';
-import {QueryClient} from 'react-query';
+const iresine = new Iresine()
+const data = {
+   deep: {
+     level: {
+       0: {
+          id: 0,
+          type: 'comment'
+       }
+     }
+   }
+}
 
-const iresineStore = new IresineStore();
-const queryClient = new QueryClient();
-new IresineReactQueryWrapper(iresineStore, queryClient);
-// now iresine work
+const {template, refs} = iresine.parse(data)
+const joined = iresine.joinRefs(template, refs)
+joined === data // false, but have same structure
 ```
 
-if you now how `mobx` work, @iresine/core is like mobx and
-@iresone/react-query-wrapper like react-mobx
+##### subscribe(EntityIds: []EntityId, listener)
+Subscribes to changes to the specified entities.
 
-## How is the data normalized?
-
-For normalization, entities must have an `id` and a `type` within which the id
-will be unique. `id` and `type` is default fields that are used to define a key
-for data normalization. You can change this fields to do like apollo `_id` and
-`__typename`
-
-## Examples
-
-```js
-import IresineStore from 'packages/core/src/index';
-
-const iresineStore = new IresineStore();
-
-const oldUser = {
-  id: '0',
-  type: 'user',
-  name: 'oldName',
-};
-
-const newUser = {
-  id: '0',
-  type: 'user',
-  name: 'newName',
-};
-
-iresineStore.parse(oldUser);
-// work with different structures
-iresineStore.parse([[[[[newUser]]]]]);
-
-iresineStore.get('user:0').name; // newName
-```
-
-## Limitation
-
-- data have to be "JSONed", `@iresine/core` don't work with Map, Set ...etc
+##### unsubscribe(EntityIds: []EntityId, listener)
+Unsubscribes changes to the specified entities.
