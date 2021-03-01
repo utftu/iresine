@@ -1,45 +1,42 @@
-## Описание проблемы
+## Description of the problem:
 
-![problem](./static/irsene-problem.svg)<br/> Представим себе такую
-последовательность:
+<img alt='problem' src='https://raw.githubusercontent.com/utftufutukgyftryidytftuv/iresine/b64d7df3babb80d4493d33447cd465bc4c1062dd/static/irsene-problem.svg'/>
+<br/> Imagine this
+sequence:
 
-1. Клиентское приложение запрашивает список пользователей запросом к /users и
-   получается пользователей с id от 1 до 10
-2. Пользователь с id 3 меняет свое имя
-3. Клиентское приложение запрашивает пользователя с id 3 с помощью запроса к
-   /user/3
+1. The client application requests a list of users with a request to /users and it gets users with id from 1 to 10
+2. User with id 3 changes his name
+3. The client application requests the user with id 3 using a request to /user/3
 
-**Вопрос:** Какое имя пользователя с id 3 будет в приложении? <br/> **Ответ:**
-Зависит от компонента, который запросил данные. В компоненте, который использует
-данные из запроса к /users, будет отображаться старое имя. В компоненте, который
-использует данные из запроса к /user/3, будет отображаться новое имя.
+**Question:** What is the username with id 3 in the application? <br/> **Answer:**
+Depends on the component that requested the data. In a component that uses
+data from the request to /users, the old name will be displayed. In a component that
+uses the data from the request to /user/3, the new name will be displayed.
 
-**Вывод**: В таком случае в системе существует несколько одинаковых по смыслу
-сущностей с разным набором данных.
+**Conclusion**: In this case, there are several entities of the same meaning with different data sets in the system.
 
-**Вопрос:** Почему это плохо? <br/> **Ответ:** В лучшем случае пользователь
-увидит разные имена одного человека в разных разделах сайта, в худшем переведет
-деньги на старые банковские реквизиты.
+**Question:** Why is that bad? <br/> **Answer:** At best user
+will see different names of one person in different sections of the site, at worst translate
+money for old bank details.
 
-## Варианты решения
+## Solution options
 
-В настоящее время существуют следующие варианты решения этой проблемы:
+Currently, there are the following solutions to this problem:
+- Not to pay attention
+- Normalize data with your own hand
+- Use graphql client (apollo or relay)
 
-- Не обращать внимание
-- Нормализовать данные собственноручно
-- Использовать клиент graphql (apollo или relay)
+### Not to pay attention
 
-### Не обращать внимание
+This is the most obvious and tempting option. In some cases, the client
+the app can really afford to have the same entities with
+different data. But what about when this is unacceptable behavior?
+How to deal with developers who do not want to create an application with such
+defects?
 
-Это самый очевидный и заманчивый вариант. В некоторых случаях клиентское
-приложение действительно может позволить себе иметь одинаковые сущности с
-разными данными. Но что делать со случаями, когда это недопустимое поведение?
-Как быть с разработчиками, которые не хотят создавать приложение с такими
-дефектами?
+### Normalize data with your own hand
 
-### Нормализовать данные собственноручно
-
-Примером собственноручной реализации может послужить код для mobx:
+An example of a handwritten implementation is the code for mobx:
 
 ```js
 class Store {
@@ -57,27 +54,27 @@ class Store {
 }
 ```
 
-И если пример с mobx выглядит приемлемо, то нормализация в redux просто
-[ужасает](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape).
-Работать с таким кодом становится сложнее по мере его увеличения и совсем
-неинтересно
+And if the example with mobx looks acceptable, then normalization in redux is simply
+[terrifying](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape).
+Working with such code becomes more difficult as it grows and completely
+not interested.
 
-### Использовать клиент graphql (apollo или relay)
+### Use graphql client (apollo or relay)
 
-Apollo и relay это библиотеки, которые из коробки умеют нормализовать данные.
-Однако такое решение заставляет нас использовать graphql и apollo, которые, по
-моему мнению, имеют множество недостатков.
+Apollo and relay are libraries that can normalize data out of the box.
+However, such a solution forces us to use graphql and apollo, which, according to
+in my opinion, they have many disadvantages.
 
-### Нормализация
+### Normalization
 
-Что такое нормализация и как она позволяет graphql клиентам бороться с указанной
-проблемой? Разберемся на примере apollo! Так apollo описывает свои действия с
-данными:
+What is normalization and how does it allow graphql clients to deal with the specified
+problem? Let's take a look at the apollo example! This is how apollo describes his actions with
+data:
 
 > ...**normalizes** query response objects before it saves them to its internal
 > data store.
 
-Что включает в себя указанное _normalize_?
+What does the specified _normalize_ include?
 
 > Normalization involves the following steps:
 >
@@ -85,9 +82,9 @@ Apollo и relay это библиотеки, которые из коробки 
 >    the response.
 > 2. The cache stores the objects by ID in a flat lookup table.
 
-То есть apollo формирует уникальный идентификатор для каждой сущности, для
-которой возможно его сформировать, и использует его как ключ в хранилище всех
-сущностей. Вот как примерно выглядит формирование идентификатора и его хранение:
+That is, apollo generates a unique identifier for each entity, for
+which it is possible to form it. Apollo uses it as a key to store all entities.
+This is how the formation of an identifier and its storage looks roughly:
 
 ```js
 const store = new Map();
@@ -104,26 +101,26 @@ const id = `${user.type}:${user.id}`;
 store.set(id, user);
 ```
 
-Комбинация типа и id дает нам по-настоящему уникальный ключ. Мы можем быть
-уверены, что если встретим другого пользователя с таким же типом и id, то это
-будет тот же пользователь.
+The combination of type and id gives us a truly unique key. We can be
+are sure that if we meet another user with the same type and id, then this
+will be the same user.
 
-## Получение уникального идентификатора
+## Getting a unique identifier
 
-Apollo достигает указанного эффекта, запрашивая при каждом запросе внутреннее
-поле \_\_typename, а как достигнуть похожего эффекта без graphql?
+Apollo achieves the specified effect by querying the internal
+field __typename, but how to achieve a similar effect without graphql?
 
-Поскольку мы не имеем внутренних полей с типами, то должны полагаться только на
-поля данных. Вот несколько решений:
+Since we have no internal fields with types, we should only rely on
+data fields. Here are some solutions:
 
-- сделать поле id или аналогичное поле глобально уникальным
-- добавить информацию о типах сущности в данные
-  - добавить типы на сервере
-  - добавить типы на клиенте
+- make id or similar field globally unique
+- add information about entity types to data
+  - add types on the server
+  - add types on the client
 
-### Сделать поле глобально уникальным
+### Make field globally unique
 
-В таком случае хранение сущностей будет выглядеть вот так:
+In this case, the storage of entities will look like this:
 
 ```js
 const store = new Map();
@@ -145,15 +142,13 @@ store.get('0'); // user
 store.get('1'); // comment
 ```
 
-Решение выглядит достаточно удобным в использовании, однако реализация глобально
-уникальных полей id будет затруднительна. Как правило, сущности хранятся в базе
-данных и имеют id уникальный только внутри коллекции/таблицы (или другими
-словами какого-то типа). А значит, чтобы сделать id глобально уникальным, нужно
-приложить много усилий.
+The solution looks pretty easy to use, but implementing globally unique id fields will be difficult. 
+As a rule, entities are stored in a database and have a unique id only within a collection/table (or in other words of some type).
+This means that it takes a lot of effort to make the id globally unique.
 
-### Добавить информацию о типах
+### Add information about entity types to data
 
-В таком случае хранение сущностей выглядеть вот так:
+In this case, the storage of entities looks like this:
 
 ```js
 const store = new Map();
@@ -181,14 +176,13 @@ store.get('user:0'); // user
 store.get('comment:1'); // comment
 ```
 
-По-прежнему удобно, но при этом требует от нас добавления особого поля в данных.
-Как мне кажется эта небольшая жертва окупается возможностью автоматического
-отслеживания изменения в данных. Именно этот вариант я выбрал предпочтительным
-для себя.
+It is still convenient, but it requires us to add a special field in the data.
+It seems to me that this small sacrifice pays off with the ability to automatically track changes in the data.
+It was this option that I chose as preferable for myself.
 
-### Где добавлять типы в данные?
+### Where to add types to data?
 
-Проблема нормализации данных особенно характерна для клиентских приложений.
+The problem of data normalization is especially common in client applications.
 Поэтому рассмотрим вопрос - в какой момент добавлять информацию о типах в данные
 для клиента. Мы можем выбрать один из указанных вариантов для добавления типов.
 
