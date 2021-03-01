@@ -1,9 +1,9 @@
 # @iresine/core
 
-`@iresine/core` is a library for normalize and notify about updates.
+@iresine/core is a library for normalize and notify about updates.
 
 99% of the time, you shouldn't use @ iresine/core directly. At the moment, I recommend using
-@iresine/core with @iresine/react-query
+@iresine/core with [@iresine/react-query](https://github.com/utftufutukgyftryidytftuv/iresine/tree/master/packages/react-query)
 
 ## Install
 ```
