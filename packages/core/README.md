@@ -125,7 +125,7 @@ iresine.get('user:0') === user // false, but have same structure
 
 ## Install
 
-```
+```console
 npm i @iresine/core
 ```
 
