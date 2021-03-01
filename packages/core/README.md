@@ -2,8 +2,8 @@
 
 `@iresine/core` is a library for normalize and notify about updates.
 
-99% of the time, you shouldn't use @ iresine / core directly. At the moment, we recommend using
-@iresine/core bundled @iresine/react-query
+99% of the time, you shouldn't use @ iresine/core directly. At the moment, I recommend using
+@iresine/core with @iresine/react-query
 
 ## Install
 ```
@@ -16,7 +16,6 @@ npm i @iresine/core
 Entity that has an identifier
 
 ##### types EntityId = string
-Entity ID
 
 for this entity
 ```js
@@ -31,7 +30,7 @@ entityId is
 ```
 
 ##### type Template = Array<Array<string, any>>
-Array of arrays where the first value contains the path and the second value contains the value
+Array of arrays where the first value contains the path, and the second value contains the value
 
 ```js
 const iresine = new Iresine()
@@ -52,9 +51,9 @@ const {template} = iresine.parse(data)
 // ]
 ```
 
-##### type Refs = Map<Array<string>, string>
+##### type Refs = Map<Array<string>, EntityId>
 
-refs is map. The keys are paths to the place where the link to another entity is located. 
+Map, there keys are paths to the place where the link to another entity is located. 
 Values are the identifier of the entity we are referring to.
 
 ```js
@@ -97,7 +96,7 @@ iresine.get('user:0') === user // true
 ```
 
 ##### join(EntityId: EntityId): Entity
-Getting an entity by its identifier. Unlike .get () creates a new entity when called.
+Get an entity by its identifier. Unlike .get() creates a new entity when called.
 The new entity is stored in the store.
 
 ```js
@@ -133,7 +132,7 @@ joined === data // false, but have same structure
 ```
 
 ##### subscribe(EntityIds: []EntityId, listener)
-Subscribes to changes to the specified entities.
+Subscribes to changes.
 
 ##### unsubscribe(EntityIds: []EntityId, listener)
-Unsubscribes changes to the specified entities.
+Unsubscribes to changes.
