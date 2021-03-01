@@ -2,7 +2,7 @@
   "name": "@iresine/react-query",
   "version": "1.0.5",
   "description": "",
-  "main": "dist/index.mjs",
+  "main": "dist/esm/index.mjs",
   "type": "module",
   "scripts": {
     "init": "npm install",
