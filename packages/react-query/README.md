@@ -1,12 +1,25 @@
-# @iresine/react-query-wrapper
+# @iresine/react-query
 
-`@iresine/react-query-wrapper` is the layer between `@iresine/core` and
+`@iresine/react-query` is the layer between `@iresine/core` and
 `react-query`.
 
-## Install
+@iresine/react-query обязательно должен быть использован вместе с @iresine/core
 
-```console
+## Install
+```
 npm i @iresine/react-query-wrapper
+```
+
+## Example
+```js
+import IresineStore from '@iresine/core';
+import IresineReactQuery from '@iresone/react-query';
+import {QueryClient} from 'react-query';
+
+const iresine = new Iresine();
+const queryClient = new QueryClient();
+new IresineReactQuery(iresineStore, queryClient);
+// now any updates in react-query will be consumbe by @iresine/core
 ```
 
 ## How use `@iresine/react-query-wrapper`?
