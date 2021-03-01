@@ -309,26 +309,21 @@ const user = {
 };
 ```
 
-User has its own identifier in the storage, but what about jobs? У них нет ни поля
-type ни поля id! @iresine/core следует простому правилу: если у сущности нет
-идентификатора, то она становится частью ближайшей родительской сущности с
-идентификатором.
+User has its own identifier in the storage, but what about jobs? They have neither a type nor an id field!
+@iresine/core follows a simple rule: if an entity has no identifier, then it becomes part of the closest parent 
+entity with an identifier.
 
-@iresine/core являет универсальной библиотекой, которая знает о том как
-распарсить данные и точечно уведомлять подписчиков. Но использовать ее напрямую
-довольно нудно и утомительно! Посмотрим как сделать этот процесс удобнее.
+@resine/core is a generic library that knows how to parse data and point out subscribers.
+But using it directly is rather tedious and tedious. Let's see how to make this process more convenient!
 
 ## @iresine/react-query
 
-react-query это прекрасная библиотека, с которой я бы посоветовал ознакомиться
-каждому. Количество фич кажется запредельным: от кэширования запросов до
-синхронизации данных между окнами браузера. Но в ней отсутствует нормализация
-данных, и именно этот факт вдохновил меня на написание iresine.
+react-query is a great library that I would encourage everyone to familiarize themselves with. 
+But it lacks data normalization, and it was this fact that inspired me to write iresine.
 
-@iresine/react-query это плагин для react-query. Он позволяет использовать
-функцию нормализации и обновления данных @iresine/core на данных хранилища
-react-query. Вся работа по нормализации происходит автоматически и клиент
-работает с react-query так, как бы работал без iresine.
+@iresine/react-query is a plugin for react-query.
+It allows you to use the normalization function and update data in the react-query storage.
+All normalization work happens automatically and the client works with react-query as it would work without iresine.
 
 ```js
 import Iresine from '@iresine/core';
@@ -341,14 +336,12 @@ new IresineReactQueryWrapper(iresineStore, queryClient);
 // now any updates in react-query store will be consumbed by @iresine/core
 ```
 
-Схема взаимодействия выглядит так(была приведена выше):
+The interaction scheme looks like this (it was given above):
 
-![iresine-solve-problem](./static/iresine-solve-problem.svg)
+<img alt='iresine-structure' src='https://raw.githubusercontent.com/utftufutukgyftryidytftuv/iresine/9e1cca578ea0723b731a2e7c187f443d01b31337/static/iresine-solve-problem.svg'/>
 
-## Итог
+## Resume
 
-Нормализация данных на клиенте это проблема. Сейчас она решается разными
-способами с разной степенью успешности. В написанном выше материале автор
-предлагает свой способ решения этой проблемы. Если сократить все предложение до
-нескольких слов, то они будут звучать как **_добавьте информацию о типах в
-данные, а после этого используйте iresine_**
+Normalizing data on the client is a problem. Now it is being solved in different ways with varying degrees of success.
+In the material written above, the author offers his own way to solve this problem.If you shorten the whole sentence 
+to a few words, they will sound like **_add type information to the data, and then use iresine_**
