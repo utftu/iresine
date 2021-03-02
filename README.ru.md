@@ -265,10 +265,8 @@ const newRequest = {
 iresine.parse(oldRequest);
 iresine.parse(newRequest);
 
-iresine.get('user:0' /*identifier for old and new user*/) ===
-  newRequest.users['0']; // true
-iresine.get('comment:0' /*identifier for old and new comment*/) ===
-  newRequest.comments['0']; // true
+iresine.get('user:0' /*identifier for old and new user*/) === newRequest.users['0']; // true
+iresine.get('comment:0' /*identifier for old and new comment*/) === newRequest.comments['0']; // true
 ```
 
 Как видим из идентификаторов, по которым мы получаем сущности из хранилища,
@@ -284,18 +282,33 @@ entityType + ':' + entityId;
 
 ```js
 const iresine = new Iresine({
-  getId: (entity) => entity.id,
-  getType: (entity) => entity.__typename,
+  getId: (entity) => {
+    if (!entity) {
+      return null
+    }
+    if (!entity.id) {
+      return null
+    }
+    if (!entity.__typename) {
+      return null
+    }
+    return `${entity.__typename}:${entity.id}`
+  }
 });
 ```
 
-Так же мы можем обрабатывать и глобально уникальное поле id, применив небольшой
-хак:
+Так же мы можем обрабатывать и глобально уникальное поле id:
 
 ```js
 const iresine = new Iresine({
-  getId: (entity) => entity.id,
-  getType: (entity) => entity.id,
+  getId: (entity) => {
+    if (!entity) {
+      return null
+    }
+    if (!entity.id) {
+      return null
+    }
+    return entity.id}
 });
 ```
 

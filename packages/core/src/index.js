@@ -14,21 +14,25 @@ class Model {
 }
 
 class Store {
-  constructor({
-    getId = (template) => template.id,
-    getType = (template) => template.type,
-  } = {}) {
-    this._getId = getId;
-    this._getType = getType;
+  constructor({getId} = {}) {
+    if (getId) {
+      this._getId = getId;
+    }
   }
-
-  _getId = (template) => template.id;
-  _getType = (template) => template.type;
+  _getId(entity) {
+    if (!entity) {
+      return null
+    }
+    if (!entity.id) {
+      return null
+    }
+    if (!entity.type) {
+      return null
+    }
+    return `${entity.type}:${entity.id}`
+  };
   _isTemplate(data) {
-    return !!(this._getId(data) && this._getType(data));
-  }
-  _getStoreKey(template) {
-    return `${this._getType(template)}:${this._getId(template)}`;
+    return this._getId(data) !== null
   }
   _getStructureType(data) {
     if (Array.isArray(data)) {
@@ -188,7 +192,7 @@ class Store {
         continue;
       }
       if (structureType === 'template' && omitNextTemplate === false) {
-        const childModelId = this._getStoreKey(data);
+        const childModelId = this._getId(data);
 
         refs.set(path, childModelId);
 
