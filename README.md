@@ -283,17 +283,34 @@ For example, let's try to use the same identifier as in apollo:
 
 ```js
 const iresine = new Iresine({
-  getId: (entity) => entity.id,
-  getType: (entity) => entity.__typename,
+  getId: (entity) => {
+    if (!entity) {
+      return null;
+    }
+    if (!entity.id) {
+      return null;
+    }
+    if (!entity.__typename) {
+      return null;
+    }
+    return `${entity.__typename}:${entity.id}`;
+  },
 });
 ```
 
-We can also handle the globally unique id field with a little hack:
+We can also handle the globally unique id field:
 
 ```js
 const iresine = new Iresine({
-  getId: (entity) => entity.id,
-  getType: (entity) => entity.id,
+  getId: (entity) => {
+    if (!entity) {
+      return null;
+    }
+    if (!entity.id) {
+      return null;
+    }
+    return entity.id;
+  },
 });
 ```
 
