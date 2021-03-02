@@ -89,8 +89,9 @@ Apollo и relay это библиотеки, которые из коробки 
 > 2. The cache stores the objects by ID in a flat lookup table.
 
 То есть apollo формирует уникальный идентификатор для каждой сущности, для
-которой возможно его сформировать. Apollo использует его как ключ в хранилище всех
-сущностей. Вот как примерно выглядит формирование идентификатора и его хранение:
+которой возможно его сформировать. Apollo использует его как ключ в хранилище
+всех сущностей. Вот как примерно выглядит формирование идентификатора и его
+хранение:
 
 ```js
 const store = new Map();
@@ -192,7 +193,8 @@ store.get('comment:1'); // comment
 ### Где добавлять типы в данные?
 
 Проблема нормализации данных особенно характерна для клиентских приложений.
-Поэтому рассмотрим вопрос - в какой момент добавлять информацию о типах в данные. Мы можем выбрать один из указанных вариантов для добавления типов.
+Поэтому рассмотрим вопрос - в какой момент добавлять информацию о типах в
+данные. Мы можем выбрать один из указанных вариантов для добавления типов.
 
 - На сервере, при отдаче данных:
 
@@ -265,8 +267,10 @@ const newRequest = {
 iresine.parse(oldRequest);
 iresine.parse(newRequest);
 
-iresine.get('user:0' /*identifier for old and new user*/) === newRequest.users['0']; // true
-iresine.get('comment:0' /*identifier for old and new comment*/) === newRequest.comments['0']; // true
+iresine.get('user:0' /*identifier for old and new user*/) ===
+  newRequest.users['0']; // true
+iresine.get('comment:0' /*identifier for old and new comment*/) ===
+  newRequest.comments['0']; // true
 ```
 
 Как видим из идентификаторов, по которым мы получаем сущности из хранилища,
@@ -284,16 +288,16 @@ entityType + ':' + entityId;
 const iresine = new Iresine({
   getId: (entity) => {
     if (!entity) {
-      return null
+      return null;
     }
     if (!entity.id) {
-      return null
+      return null;
     }
     if (!entity.__typename) {
-      return null
+      return null;
     }
-    return `${entity.__typename}:${entity.id}`
-  }
+    return `${entity.__typename}:${entity.id}`;
+  },
 });
 ```
 
@@ -303,12 +307,13 @@ const iresine = new Iresine({
 const iresine = new Iresine({
   getId: (entity) => {
     if (!entity) {
-      return null
+      return null;
     }
     if (!entity.id) {
-      return null
+      return null;
     }
-    return entity.id}
+    return entity.id;
+  },
 });
 ```
 
@@ -374,4 +379,5 @@ new IresineReactQueryWrapper(iresineStore, queryClient);
 способами с разной степенью успешности. В написанном выше материале автор
 предлагает свой способ решения этой проблемы. Если сократить все предложение до
 нескольких слов, то они будут звучать как **_добавьте информацию о типах в
-данные, а после этого используйте [iresine](https://github.com/utftufutukgyftryidytftuv/iresine)_**
+данные, а после этого используйте
+[iresine](https://github.com/utftufutukgyftryidytftuv/iresine)_**

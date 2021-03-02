@@ -21,18 +21,18 @@ class Store {
   }
   _getId(entity) {
     if (!entity) {
-      return null
+      return null;
     }
     if (!entity.id) {
-      return null
+      return null;
     }
     if (!entity.type) {
-      return null
+      return null;
     }
-    return `${entity.type}:${entity.id}`
-  };
+    return `${entity.type}:${entity.id}`;
+  }
   _isTemplate(data) {
-    return this._getId(data) !== null
+    return this._getId(data) !== null;
   }
   _getStructureType(data) {
     if (Array.isArray(data)) {
