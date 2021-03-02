@@ -20,7 +20,7 @@ class Store {
     }
   }
   _getId(entity) {
-    //
+    ////
     if (!entity) {
       return null;
     }
