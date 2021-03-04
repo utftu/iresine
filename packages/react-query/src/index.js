@@ -24,7 +24,11 @@ class ReactQueryWrapper {
   settingQuery = false;
 
   add(query, data, queryKey) {
-    const {template, refs} = this.coreStore.parse(data);
+    const result = this.coreStore.parse(data);
+    if (result === null) {
+      return;
+    }
+    const {template, refs} = result;
     const listener = () => {
       const newData = this.coreStore.joinRefs(template, refs);
       this.settingQuery = true;

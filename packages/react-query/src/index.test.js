@@ -1,5 +1,5 @@
-import Store from '@iresine/core';
-import ReactQueryWrapper from './index.js';
+import Iresine from '@iresine/core';
+import IresineReactQuery from './index.js';
 import reactQuery from 'react-query';
 import {setQueryDataNotCopy} from './helpers/index.js';
 
@@ -29,9 +29,9 @@ const newComment = {
 describe('react-query wrapper', () => {
   describe('replace', () => {
     it('single', () => {
-      const store = new Store();
+      const store = new Iresine();
       const queryClient = new QueryClient();
-      new ReactQueryWrapper(store, queryClient);
+      new IresineReactQuery(store, queryClient);
 
       setQueryDataNotCopy(queryClient, 'user:0', oldUser);
       setQueryDataNotCopy(queryClient, 'users', [newUser]);
@@ -40,9 +40,9 @@ describe('react-query wrapper', () => {
       expect(queryClient.getQueryData('user:0')).toBe(newUser);
     });
     it('multi', () => {
-      const store = new Store();
+      const store = new Iresine();
       const queryClient = new QueryClient();
-      new ReactQueryWrapper(store, queryClient);
+      new IresineReactQuery(store, queryClient);
 
       const oldRequest = {
         users: [oldUser],
@@ -66,5 +66,16 @@ describe('react-query wrapper', () => {
       expect(oldRequestData.users[0]).toBe(newUser);
       expect(oldRequestData.comments[0]).toBe(newComment);
     });
+  });
+  it('unknown', () => {
+    const iresine = new Iresine();
+    const queryClient = new QueryClient();
+    new IresineReactQuery(iresine, queryClient);
+
+    setQueryDataNotCopy(queryClient, 'null', null);
+    setQueryDataNotCopy(queryClient, 'undefined', undefined);
+    setQueryDataNotCopy(queryClient, 42, 42);
+    setQueryDataNotCopy(queryClient, 'string', 'string');
+    setQueryDataNotCopy(queryClient, false, false);
   });
 });
