@@ -44,13 +44,17 @@ class Store {
     if (isObject(data)) {
       return 'object';
     }
-    return 'primitive';
+    return 'unknown';
   }
 
   models = new Map();
   updated = new Set();
 
   parse(data) {
+    const structureType = this._getStructureType(data);
+    if (structureType === 'unknown') {
+      return null;
+    }
     const response = this._parse(data);
     const parents = this._reconciliation(this.updated.values());
     this._notify(new Set([...this.updated, ...parents]));
@@ -187,7 +191,7 @@ class Store {
 
       const structureType = this._getStructureType(data);
 
-      if (structureType === 'primitive') {
+      if (structureType === 'unknown') {
         template.push([path, data]);
         continue;
       }

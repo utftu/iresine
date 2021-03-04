@@ -6,6 +6,9 @@ export function isEmptyObject(obj) {
 }
 
 export function isObject(data) {
+  if (data === null || data === undefined) {
+    return false;
+  }
   const prototype = Object.getPrototypeOf(data);
   return prototype === Object.prototype || prototype === null;
 }

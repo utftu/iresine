@@ -1,4 +1,4 @@
-import Store from './index.js';
+import Iresine from './index.js';
 import {jest} from '@jest/globals';
 
 const oldUser = {
@@ -25,7 +25,7 @@ const newComment = {
 describe('core', () => {
   describe('.join()', () => {
     it('join single template ', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       store.parse(oldUser);
       expect(store.join('user:0')).toEqual(oldUser);
@@ -33,13 +33,13 @@ describe('core', () => {
   });
   describe('.parse()', () => {
     it('parse single template', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       store.parse(oldUser);
       expect(store.join('user:0')).toEqual(oldUser);
     });
     it('multi', () => {
-      const store = new Store();
+      const store = new Iresine();
       const multi = {
         object: {
           0: oldUser,
@@ -54,14 +54,14 @@ describe('core', () => {
   });
   describe('update', () => {
     it('update single template', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       store.parse(oldUser);
       store.parse(newUser);
       expect(store.join('user:0')).toEqual(newUser);
     });
     it('update multi templates', () => {
-      const store = new Store();
+      const store = new Iresine();
       const oldRequest = {
         users: [oldUser],
         comments: {
@@ -83,7 +83,7 @@ describe('core', () => {
   });
   describe('.get()', () => {
     it('single', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       store.parse(oldUser);
       const userResult = store.get('user:0');
@@ -93,7 +93,7 @@ describe('core', () => {
   });
   describe('.template', () => {
     it('object', () => {
-      const store = new Store();
+      const store = new Iresine();
       const data = {
         count: 0,
         object: {
@@ -117,7 +117,7 @@ describe('core', () => {
       expect(template[3][1]).toEqual(2);
     });
     it('array', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const data = [
         {
@@ -134,13 +134,13 @@ describe('core', () => {
   });
   describe('.refs', () => {
     it('single', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const {refs} = store.parse(oldUser);
       expect(refs).toEqual(new Map([[[], 'user:0']]));
     });
     it('multi', () => {
-      const store = new Store();
+      const store = new Iresine();
       const multi = {
         object: {
           0: oldUser,
@@ -159,7 +159,7 @@ describe('core', () => {
   });
   describe('.subscribe()', () => {
     it('subscribe to single template', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const {refs} = store.parse(oldUser);
       const modelIds = [...refs.values()];
@@ -177,7 +177,7 @@ describe('core', () => {
       expect(callback.mock.calls.length).toBe(1);
     });
     it('subscribe to multi templates', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const callback = jest.fn();
       const {refs} = store.parse([oldUser, oldComment]);
@@ -192,7 +192,7 @@ describe('core', () => {
   });
   describe('.unsubscribe()', () => {
     it('single', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const {refs} = store.parse(oldUser);
       const modelIds = [...refs.values()];
@@ -205,7 +205,7 @@ describe('core', () => {
   });
   describe('recursive', () => {
     it('two', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const user0 = {
         id: '0',
@@ -227,7 +227,7 @@ describe('core', () => {
       expect(store.join('user:0')).toEqual(user0);
     });
     it('three', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const user0 = {
         id: '0',
@@ -258,14 +258,14 @@ describe('core', () => {
   });
   describe('.joinRefs()', () => {
     it('model', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const {refs, template} = store.parse(oldUser);
       const recreate = store.joinRefs(template, refs);
       expect(recreate).toBe(oldUser);
     });
     it('structure', () => {
-      const store = new Store();
+      const store = new Iresine();
 
       const data = {
         count: 0,
@@ -284,6 +284,63 @@ describe('core', () => {
       const {refs, template} = store.parse(data);
       const recreate = store.joinRefs(template, refs);
       expect(recreate).toEqual(data);
+    });
+  });
+  describe('structures', () => {
+    it('boolean', () => {
+      const iresine = new Iresine();
+
+      const result = iresine.parse(true);
+      expect(result).toBe(null);
+    });
+    it('number', () => {
+      const iresine = new Iresine();
+
+      const result = iresine.parse(42);
+      expect(result).toBe(null);
+    });
+    it('string', () => {
+      const iresine = new Iresine();
+
+      const result = iresine.parse('hello');
+      expect(result).toBe(null);
+    });
+    it('null', () => {
+      const iresine = new Iresine();
+
+      const result = iresine.parse(null);
+      expect(result).toBe(null);
+    });
+    it('undefined', () => {
+      const iresine = new Iresine();
+
+      const result = iresine.parse(null);
+      expect(result).toBe(null);
+    });
+    it('map', () => {
+      const iresine = new Iresine();
+
+      const result = iresine.parse(new Map());
+      expect(result).toBe(null);
+    });
+    it('set', () => {
+      const iresine = new Iresine();
+
+      const result = iresine.parse(new Set());
+      expect(result).toBe(null);
+    });
+    it('map in deep', () => {
+      const iresine = new Iresine();
+
+      const data = {
+        map: new Map([[1, 1]]),
+      };
+
+      const {template} = iresine.parse(data);
+      expect(template).toEqual([
+        [[], {}],
+        [['map'], data.map],
+      ]);
     });
   });
 });

@@ -1,4 +1,4 @@
-import op from './src';
+import op from './index.js';
 
 describe('object path', () => {
   describe('set', () => {
@@ -9,11 +9,11 @@ describe('object path', () => {
       op.set(obj, '[]2', '2');
       op.set(obj, '3.3', '3');
       op.set(obj, '[]4.0', '4');
-      expect(obj['1']).toBe('1');
-      expect(obj['2']).toBe('2');
-      expect(obj['3']['3']).toBe('3');
+      expect(obj[1]).toBe('1');
+      expect(obj[2]).toBe('2');
+      expect(obj[3][3]).toBe('3');
       expect(Array.isArray(obj['4'])).toBe(true);
-      expect(obj['4']['0']).toBe('4');
+      expect(obj[4][0]).toBe('4');
     });
     it('not recreate object', () => {
       const user = {
