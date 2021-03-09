@@ -2,10 +2,24 @@
   "name": "@iresine/helpers",
   "version": "1.0.8",
   "description": "",
-  "main": "dist/esm/index.mjs",
-  "type": "module",
   "scripts": {
+    "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "main": "./dist/cjs/index.cjs",
+  "exports": {
+    "development": {
+      "import": "./dist/esm/dev.mjs",
+      "require": "./dist/cjs/dev.cjs"
+    },
+    "producton": {
+      "import": "./dist/esm/prod.mjs",
+      "require": "./dist/cjs/prod.cjs"
+    },
+    "import": "./dist/esm/prod.mjs",
+    "require": "./dist/cjs/prod.cjs",
+    "default": "./dist/cjs/prod.cjs"
   },
   "files": [
     "dist/**/*"

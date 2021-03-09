@@ -1,4 +1,4 @@
-import ReactQueryWrapper from './index.js';
+import IresineReactQuery from './index.js';
 import {QueryClient} from 'react-query';
 import Store from '@iresine/core';
 import {setQueryDataNotCopy} from './helpers/index.js';
@@ -24,10 +24,6 @@ const newComment = {
   text: 'newComment',
 };
 
-const store = new Store();
-const queryClient = new QueryClient();
-new ReactQueryWrapper(store, queryClient);
-
 const oldRequest = {
   users: [oldUser],
   comments: {
@@ -42,13 +38,46 @@ const newRequest = {
   newComments: [newComment],
 };
 
-// queryClient.setQueryData('oldRequest', oldRequest);
-// queryClient.setQueryData('newRequest', newRequest);
-setQueryDataNotCopy(queryClient, 'oldRequest', oldRequest);
-setQueryDataNotCopy(queryClient, 'newRequest', newRequest);
+const store = new Store();
+const queryClient = new QueryClient();
+// new ReactQueryWrapper(store, queryClient);
 
-const oldRequestData = queryClient.getQueryData('oldRequest');
+queryClient.getQueryCache().subscribe((queryEvent) => {
+  if (queryEvent.type !== 'queryUpdated') {
+    return;
+  }
+  queryClient.getQueryCache().queriesMap['["oldRequest"]'].state.data = {
+    name: 'hehe',
+  };
+  console.log(
+    queryClient.getQueryCache().queries.map((query) => query.state.data)
+  );
+});
 
-console.log(oldRequestData.users[0]);
-console.log(oldRequestData.users[0] === newUser);
-console.log(oldRequestData.comments[0] === newComment);
+queryClient.getQueryCache().subscribe((queryEvent) => {
+  console.log(
+    queryClient.getQueryCache().queries.map((query) => query.state.data)
+  );
+  // console.log('-----', 'queryEvent 2', queryEvent.query.state.data);
+});
+
+queryClient.setQueryData('oldRequest', oldRequest);
+queryClient.setQueryData('oldRequest', newRequest);
+console.log(
+  queryClient.getQueryCache().queries.map((query) => query.state.data)
+);
+
+// console.log(
+//   '-----',
+//   'queryClient.getQueryCache()',
+//   queryClient.getQueryCache().queriesMap['["oldRequest"]'].state.data
+// );
+
+// setQueryDataNotCopy(queryClient, 'oldRequest', oldRequest);
+// setQueryDataNotCopy(queryClient, 'newRequest', newRequest);
+//
+// const oldRequestData = queryClient.getQueryData('oldRequest');
+
+// .console.log(oldRequestData.users[0]);
+// console.log(oldRequestData.users[0] === newUser);
+// console.log(oldRequestData.comments[0] === newComment);

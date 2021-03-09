@@ -19,12 +19,6 @@ function set(target, path, value) {
     } else {
       key = currentPath;
     }
-    // const key = isArrPath ? currentPath.slice(2) : currentPath;
-
-    // if (i === path.length - 1) {
-    //   entity[key] = value;
-    //   break;
-    // }
 
     if (i === path.length - 1) {
       entity[key] = value;
@@ -44,62 +38,8 @@ function set(target, path, value) {
       }
       entity = entity[key];
     }
-
-    // if (isMapPath) {
-    //   if (!(targetValue instanceof Map)) {
-    //     setSingle(entity, key, new Map());
-    //   }
-    //   entity = getSingle(entity, key);
-    // } else if (isSetPath) {
-    //   if (!(targetValue instanceof Set)) {
-    //     setSingle(entity, key, new Set());
-    //   }
-    //   entity = getSingle(entity, key);
-    // } else if (isArrPath) {
-    //   if (!Array.isArray(targetValue)) {
-    //     setSingle(entity, key, []);
-    //   }
-    //   entity = getSingle(entity, key);
-    // } else {
-    //   if (!isObject(targetValue)) {
-    //     setSingle(entity, key, {});
-    //   }
-    //   entity = getSingle(entity, key);
-    // }
-
-    // if (isArrPath && !entity[key]) {
-    //   entity[key] = [];
-    // } else if (!entity[key]) {
-    //   entity[key] = {};
-    // }
-
-    // entity = entity[key];
   }
   return target;
-
-  function setSingle(target, key, value) {
-    if (target instanceof Map) {
-      target.set(key, value);
-    } else if (target instanceof Set) {
-      target.add(value);
-    } else if (Array.isArray(target)) {
-      target[key] = value;
-    } else {
-      target[key] = value;
-    }
-  }
-
-  function getSingle(target, key) {
-    if (target instanceof Map) {
-      return target.get(key);
-    } else if (target instanceof Set) {
-      return target.get(value);
-    } else if (Array.isArray(target)) {
-      return target[key];
-    } else {
-      return target[key];
-    }
-  }
 }
 
 function joinTemplate(template) {
@@ -118,6 +58,8 @@ function joinTemplate(template) {
 
   return rootStructure;
 }
+
+export {set, joinTemplate};
 
 export default {
   set,

@@ -13,12 +13,16 @@ class Model {
   listeners = new Set();
 }
 
-class Store {
-  constructor({getId} = {}) {
+class Iresine {
+  constructor({getId, time} = {}) {
+    if (time) {
+      this._time = time;
+    }
     if (getId) {
       this._getId = getId;
     }
   }
+  _time = false;
   _getId(entity) {
     if (!entity) {
       return null;
@@ -73,6 +77,9 @@ class Store {
   join(storeId) {
     const model = this.models.get(storeId);
     const templateObj = objectPath.joinTemplate(model.template);
+    if (this._time) {
+      this._addTime(templateObj);
+    }
     model.prepared = templateObj;
 
     for (let [path, storeId] of model.refs) {
@@ -104,7 +111,6 @@ class Store {
 
     return base;
   }
-
   _notify(storeIds) {
     const listeners = new Set();
     for (const storeId of storeIds) {
@@ -148,6 +154,17 @@ class Store {
 
     return parents;
   }
+  _addTime(entity) {
+    const now = Date.now();
+    entity[this._time.timeField] = now;
+    entity[this._time.uniqField] = `${this._getId(entity)}:${now}`;
+    // Object.defineProperty(entity, this._time.timeField, {
+    //   value: now,
+    // });
+    // Object.defineProperty(entity, this._time.uniqField, {
+    //   value: `${this._getId(entity)}:${now}`,
+    // });
+  }
   _insert(storeId, rawTemplate, parentModelIds) {
     if (this.updated.has(storeId)) {
       return;
@@ -162,6 +179,12 @@ class Store {
       model.children.clear();
     }
     this.updated.add(storeId);
+
+    if (this._time) {
+      console.log('-----', 'here');
+      this._addTime(rawTemplate);
+    }
+
     model.prepared = rawTemplate;
 
     const {refs, template} = this._parse(rawTemplate, {
@@ -240,4 +263,5 @@ class Store {
   }
 }
 
-export default Store;
+export {Iresine};
+export default Iresine;

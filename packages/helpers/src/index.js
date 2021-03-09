@@ -31,3 +31,9 @@ export function isPrimitive(data) {
   }
   return true;
 }
+
+export default {
+  isObject,
+  isPrimitive,
+  isEmptyObject,
+};

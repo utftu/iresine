@@ -5,6 +5,7 @@
   "main": "dist/esm/index.mjs",
   "type": "module",
   "scripts": {
+    "build": "rollup -c",
     "init": "npm install"
   },
   "files": [

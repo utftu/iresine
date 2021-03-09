@@ -1,4 +1,4 @@
-import Iresine from './index.js';
+import {Iresine} from './index.js';
 import {jest} from '@jest/globals';
 
 const oldUser = {
@@ -284,6 +284,20 @@ describe('core', () => {
       const {refs, template} = store.parse(data);
       const recreate = store.joinRefs(template, refs);
       expect(recreate).toEqual(data);
+    });
+  });
+  describe('time', () => {
+    it.only('add', () => {
+      const iresine = new Iresine({
+        time: {timeField: '_time', uniqField: 'uniq'},
+      });
+      const user = {
+        id: '0',
+        type: 'user',
+        name: 'oldUser',
+      };
+      iresine.parse(user);
+      console.log(user);
     });
   });
   describe('structures', () => {

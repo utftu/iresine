@@ -1,9 +1,14 @@
-import Iresine from '@iresine/core';
-import IresineReactQuery from './index.js';
+import {Iresine} from '@iresine/core';
+import {IresineReactQuery} from './index.js';
+import React from 'react';
 import reactQuery from 'react-query';
+import * as testingLibraryReact from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
 import {setQueryDataNotCopy} from './helpers/index.js';
 
-const QueryClient = reactQuery.QueryClient;
+//
+const {render} = testingLibraryReact.default;
+const {QueryClient, QueryClientProvider, useQuery} = reactQuery;
 
 const oldUser = {
   id: '0',
@@ -27,6 +32,47 @@ const newComment = {
 };
 
 describe('react-query wrapper', () => {
+  describe('react', () => {
+    it('1', async () => {
+      const iresine = new Iresine();
+      const queryClient = new QueryClient();
+      new IresineReactQuery(iresine, queryClient);
+      let updates1 = 0;
+      let updates2 = 0;
+
+      function Component1() {
+        const {data} = useQuery('oldRequest', () => oldUser);
+        updates1++;
+        return <div>{data?.name}</div>;
+      }
+
+      function Component2() {
+        const {data} = useQuery(
+          'newRequest',
+          () =>
+            new Promise((resolve) => {
+              setTimeout(() => resolve(newUser));
+            })
+        );
+        updates2++;
+        return <div>{data?.name}</div>;
+      }
+
+      render(
+        <QueryClientProvider client={queryClient}>
+          <Component1 />
+          <Component2 />
+        </QueryClientProvider>
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      expect(updates1).toBe(3);
+      expect(updates2).toBe(2);
+      console.log('-----', 'updates1', updates1);
+      console.log('-----', 'updates2', updates2);
+    });
+  });
   describe('replace', () => {
     it('single', () => {
       const store = new Iresine();

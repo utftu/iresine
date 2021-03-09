@@ -1,4 +1,4 @@
-function getConfig({libraryTarget, dirname, entry, filename}) {
+function getConfig({libraryTarget, dirname, entry, filename, mode}) {
   return {
     entry: entry,
     output: {
@@ -6,7 +6,8 @@ function getConfig({libraryTarget, dirname, entry, filename}) {
       path: dirname,
       libraryTarget: libraryTarget,
     },
-    mode: 'production',
+    devtool: false,
+    mode: mode,
     module: {
       rules: [
         {
@@ -15,16 +16,13 @@ function getConfig({libraryTarget, dirname, entry, filename}) {
           use: {
             loader: 'babel-loader',
             options: {
-              presets: ['@babel/preset-env'],
-              plugins: [
-                ['@babel/plugin-proposal-class-properties', {loose: true}],
-              ],
+              ...require('./babel.config.cjs'),
             },
           },
         },
       ],
     },
-    experiments: {outputModule: true},
+    experiments: {outputModule: true, topLevelAwait: true},
   };
 }
 

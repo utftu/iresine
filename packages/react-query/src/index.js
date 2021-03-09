@@ -1,7 +1,7 @@
 import {isPrimitive} from '@iresine/helpers';
 import {setQueryDataNotCopy} from './helpers/index.js';
 
-class ReactQueryWrapper {
+class IresineReactQuery {
   constructor(coreStore, queryClient) {
     this.coreStore = coreStore;
     this.queryClient = queryClient;
@@ -23,7 +23,7 @@ class ReactQueryWrapper {
   store = new Map();
   settingQuery = false;
 
-  add(query, data, queryKey) {
+  add(queryHash, data, queryKey) {
     const result = this.coreStore.parse(data);
     if (result === null) {
       return;
@@ -36,7 +36,7 @@ class ReactQueryWrapper {
       this.settingQuery = false;
     };
     this.coreStore.subscribe(refs.values(), listener);
-    this.store.set(query, {
+    this.store.set(queryHash, {
       refs,
       template,
       listener,
@@ -55,21 +55,16 @@ class ReactQueryWrapper {
     this.store.delete(query);
   }
 
-  subscribeRequests = (queryState) => {
-    if (this.settingQuery || !queryState) {
+  subscribeRequests = (queryEvent) => {
+    if (queryEvent?.type !== 'queryUpdated') {
       return;
     }
-    const query = queryState.query;
-    if (isPrimitive(query.state.data)) {
-      return;
-    }
+    const query = queryEvent.query;
+
     this.remove(query.queryHash);
-    this.add(
-      query.queryHash,
-      this.queryClient.getQueryData(query.queryKey),
-      query.queryKey
-    );
+    this.add(query.queryHash, query.state.data, query.queryKey);
   };
 }
 
-export default ReactQueryWrapper;
+export {IresineReactQuery};
+export default IresineReactQuery;
