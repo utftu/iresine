@@ -2,11 +2,23 @@
   "name": "@iresine/core",
   "version": "1.0.8",
   "description": "",
-  "main": "dist/esm/index.mjs",
+  "main": "./dist/cjs/index.cjs",
+  "exports": {
+    "development": {
+      "import": "./dist/esm/dev.mjs",
+      "require": "./dist/cjs/dev.cjs"
+    },
+    "producton": {
+      "import": "./dist/esm/prod.mjs",
+      "require": "./dist/cjs/prod.cjs"
+    },
+    "import": "./dist/esm/prod.mjs",
+    "require": "./dist/cjs/prod.cjs",
+    "default": "./dist/cjs/prod.cjs"
+  },
   "type": "module",
   "scripts": {
-    "build": "rollup -c",
-    "init": "npm install"
+    "build": "rollup -c"
   },
   "files": [
     "dist/**/*"

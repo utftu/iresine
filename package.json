@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "publish": "npm run format && npm run boot && npm run init && npm run build && npm run test && lerna publish",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.cjs",
+    "test-old": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.cjs",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "boot": "lerna bootstrap --hoist",
     "build": "lerna run build",
-    "rm-build": "lerna exec -- rm -rf ./dist",
+    "rm-dist": "lerna exec -- rm -rf ./dist",
+    "rm-node_modules": "lerna exec -- rm -rf ./node_modules",
     "format": "prettier --write \"./**/*.{js,mjs,cjs,md,json}\""
   },
   "author": "",
@@ -17,20 +19,15 @@
   "devDependencies": {
     "@babel/core": "^7.13.1",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "@babel/preset-env": "^7.13.5",
-    "@babel/preset-react": "^7.12.13",
     "@rollup/plugin-babel": "^5.3.0",
-    "@rollup/plugin-commonjs": "^17.1.0",
-    "babel-jest": "^26.6.3",
     "babel-loader": "^8.2.2",
-    "babel-plugin-macros": "^3.0.1",
-    "copy-webpack-plugin": "^8.0.0",
-    "jest": "^26.6.3",
+    "expect": "^26.6.2",
+    "jest": "^27.0.0-next.4",
+    "jest-mock": "^26.6.2",
     "lerna": "^3.22.1",
     "prettier": "^2.2.1",
+    "react": "^17.0.1",
     "rollup": "^2.40.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "webpack": "^5.24.2",
-    "webpack-cli": "^4.5.0"
+    "rollup-plugin-terser": "^7.0.2"
   }
 }

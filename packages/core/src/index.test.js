@@ -1,5 +1,6 @@
 import {Iresine} from './index.js';
-import {jest} from '@jest/globals';
+import expect from 'expect';
+import mock from 'jest-mock';
 
 const oldUser = {
   id: '0',
@@ -164,7 +165,7 @@ describe('core', () => {
       const {refs} = store.parse(oldUser);
       const modelIds = [...refs.values()];
 
-      const callback = jest.fn();
+      const callback = mock.fn();
       store.subscribe(modelIds, callback);
       expect(callback.mock.calls.length).toBe(0);
       store.parse(oldComment);
@@ -179,7 +180,7 @@ describe('core', () => {
     it('subscribe to multi templates', () => {
       const store = new Iresine();
 
-      const callback = jest.fn();
+      const callback = mock.fn();
       const {refs} = store.parse([oldUser, oldComment]);
       store.subscribe([...refs.values()], callback);
       store.parse([newUser, newComment]);
@@ -196,7 +197,7 @@ describe('core', () => {
 
       const {refs} = store.parse(oldUser);
       const modelIds = [...refs.values()];
-      const callback = jest.fn();
+      const callback = mock.fn();
       store.subscribe(modelIds, callback);
       store.unsubscribe(modelIds, callback);
       store.parse(newUser);
@@ -287,7 +288,7 @@ describe('core', () => {
     });
   });
   describe('time', () => {
-    it.only('add', () => {
+    it('add', () => {
       const iresine = new Iresine({
         time: {timeField: '_time', uniqField: 'uniq'},
       });
@@ -297,7 +298,6 @@ describe('core', () => {
         name: 'oldUser',
       };
       iresine.parse(user);
-      console.log(user);
     });
   });
   describe('structures', () => {

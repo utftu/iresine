@@ -158,12 +158,6 @@ class Iresine {
     const now = Date.now();
     entity[this._time.timeField] = now;
     entity[this._time.uniqField] = `${this._getId(entity)}:${now}`;
-    // Object.defineProperty(entity, this._time.timeField, {
-    //   value: now,
-    // });
-    // Object.defineProperty(entity, this._time.uniqField, {
-    //   value: `${this._getId(entity)}:${now}`,
-    // });
   }
   _insert(storeId, rawTemplate, parentModelIds) {
     if (this.updated.has(storeId)) {
@@ -181,7 +175,6 @@ class Iresine {
     this.updated.add(storeId);
 
     if (this._time) {
-      console.log('-----', 'here');
       this._addTime(rawTemplate);
     }
 

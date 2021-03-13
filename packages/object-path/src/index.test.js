@@ -1,4 +1,5 @@
 import op from './index.js';
+import expect from 'expect';
 
 describe('object path', () => {
   describe('set', () => {

@@ -1,6 +1,9 @@
-import {isObject} from '@iresine/helpers';
+import {isObject, setAdd} from '@iresine/helpers';
+import {set} from '@iresine/object-path';
 
 console.log('-----', 'object', isObject);
+console.log('-----', 'set', set);
+console.log('-----', 'setADD', setAdd);
 
 // import {Iresine} from './index.js';
 //

@@ -1,12 +1,15 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import {Iresine} from '@iresine/core';
 import {IresineReactQuery} from './index.js';
 import React from 'react';
+import expect from 'expect';
 import reactQuery from 'react-query';
 import * as testingLibraryReact from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
 import {setQueryDataNotCopy} from './helpers/index.js';
 
-//
 const {render} = testingLibraryReact.default;
 const {QueryClient, QueryClientProvider, useQuery} = reactQuery;
 
@@ -33,7 +36,7 @@ const newComment = {
 
 describe('react-query wrapper', () => {
   describe('react', () => {
-    it('1', async () => {
+    it('single', async function () {
       const iresine = new Iresine();
       const queryClient = new QueryClient();
       new IresineReactQuery(iresine, queryClient);
@@ -43,7 +46,7 @@ describe('react-query wrapper', () => {
       function Component1() {
         const {data} = useQuery('oldRequest', () => oldUser);
         updates1++;
-        return <div>{data?.name}</div>;
+        return React.createElement('div', null, data?.name);
       }
 
       function Component2() {
@@ -55,22 +58,24 @@ describe('react-query wrapper', () => {
             })
         );
         updates2++;
-        return <div>{data?.name}</div>;
+        return React.createElement('div', null, data?.name);
       }
 
       render(
-        <QueryClientProvider client={queryClient}>
-          <Component1 />
-          <Component2 />
-        </QueryClientProvider>
+        React.createElement(
+          QueryClientProvider,
+          {
+            client: queryClient,
+          },
+          React.createElement(Component1),
+          React.createElement(Component2)
+        )
       );
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(updates1).toBe(3);
       expect(updates2).toBe(2);
-      console.log('-----', 'updates1', updates1);
-      console.log('-----', 'updates2', updates2);
     });
   });
   describe('replace', () => {
@@ -84,6 +89,7 @@ describe('react-query wrapper', () => {
 
       expect(queryClient.getQueryData('users')[0]).toBe(newUser);
       expect(queryClient.getQueryData('user:0')).toBe(newUser);
+      queryClient.clear();
     });
     it('multi', () => {
       const store = new Iresine();
@@ -111,9 +117,10 @@ describe('react-query wrapper', () => {
 
       expect(oldRequestData.users[0]).toBe(newUser);
       expect(oldRequestData.comments[0]).toBe(newComment);
+      queryClient.clear();
     });
   });
-  it('unknown', () => {
+  it('unknown data', () => {
     const iresine = new Iresine();
     const queryClient = new QueryClient();
     new IresineReactQuery(iresine, queryClient);
@@ -123,5 +130,7 @@ describe('react-query wrapper', () => {
     setQueryDataNotCopy(queryClient, 42, 42);
     setQueryDataNotCopy(queryClient, 'string', 'string');
     setQueryDataNotCopy(queryClient, false, false);
+
+    queryClient.clear();
   });
 });

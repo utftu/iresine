@@ -1,11 +1,11 @@
-export function isEmptyObject(obj) {
+function isEmptyObject(obj) {
   for (const key in obj) {
     return false;
   }
   return true;
 }
 
-export function isObject(data) {
+function isObject(data) {
   if (data === null || data === undefined) {
     return false;
   }
@@ -13,13 +13,13 @@ export function isObject(data) {
   return prototype === Object.prototype || prototype === null;
 }
 
-export function setAdd(set, iterator) {
+function setAdd(set, iterator) {
   for (const el of iterator) {
     set.add(el);
   }
 }
 
-export function isPrimitive(data) {
+function isPrimitive(data) {
   if (data === undefined || data === null) {
     return true;
   }
@@ -32,7 +32,10 @@ export function isPrimitive(data) {
   return true;
 }
 
+export {setAdd, isObject, isPrimitive, isEmptyObject};
+
 export default {
+  setAdd,
   isObject,
   isPrimitive,
   isEmptyObject,
