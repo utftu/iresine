@@ -1,4 +1,4 @@
-import op from './src/index.js';
+import op from './src';
 
 const obj = {};
 
