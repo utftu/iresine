@@ -3,21 +3,32 @@ import babelConfig from '../../babel.config.cjs';
 import {terser} from 'rollup-plugin-terser';
 import {dirname, join} from 'path';
 import {fileURLToPath} from 'url';
+import copy from 'rollup-plugin-copy';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const config = [
   {
-    input: join(__dirname, '../../cjs-path.cjs'),
+    input: join(__dirname, '../../build/cjs-path.cjs'),
     output: {
-      file: join(__dirname, 'dist/cjs/index.cjs'),
+      file: join(__dirname, 'dist/cjs/index.js'),
       format: 'cjs',
     },
+    plugins: [
+      copy({
+        targets: [
+          {
+            src: join(__dirname, '../../build/package.json'),
+            dest: join(__dirname, './dist/cjs'),
+          },
+        ],
+      }),
+    ],
   },
   {
     input: join(__dirname, 'src/index.js'),
     output: {
-      file: join(__dirname, 'dist/cjs/dev.cjs'),
+      file: join(__dirname, 'dist/cjs/dev.js'),
       format: 'cjs',
     },
     plugins: [
@@ -31,7 +42,7 @@ const config = [
   {
     input: join(__dirname, 'src/index.js'),
     output: {
-      file: join(__dirname, 'dist/cjs/prod.cjs'),
+      file: join(__dirname, 'dist/cjs/prod.js'),
       format: 'cjs',
     },
     plugins: [

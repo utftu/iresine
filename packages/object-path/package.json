@@ -6,19 +6,19 @@
   "scripts": {
     "build": "rollup -c"
   },
-  "main": "./dist/cjs/index.cjs",
+  "main": "./dist/cjs/index.js",
   "exports": {
     "development": {
       "import": "./dist/esm/dev.mjs",
-      "require": "./dist/cjs/dev.cjs"
+      "require": "./dist/cjs/dev.js"
     },
     "producton": {
       "import": "./dist/esm/prod.mjs",
-      "require": "./dist/cjs/prod.cjs"
+      "require": "./dist/cjs/prod.js"
     },
     "import": "./dist/esm/prod.mjs",
-    "require": "./dist/cjs/prod.cjs",
-    "default": "./dist/cjs/prod.cjs"
+    "require": "./dist/cjs/prod.js",
+    "default": "./dist/cjs/prod.js"
   },
   "dependencies": {
     "@iresine/helpers": "^1.0.10"
