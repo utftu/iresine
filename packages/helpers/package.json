@@ -1,6 +1,6 @@
 {
   "name": "@iresine/helpers",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "",
   "scripts": {
     "build": "rollup -c",
