@@ -5,8 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "publish": "npm run format && npm run boot && npm run init && npm run build && npm run test && lerna publish",
-    "test-old": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.cjs",
+    "publish": "npm run format && npm run boot && npm exec install && npm run build && npm run test && lerna publish",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "boot": "lerna bootstrap --hoist",
     "build": "lerna run build",
