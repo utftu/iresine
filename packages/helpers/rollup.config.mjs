@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const config = [
   {
-    input: join(__dirname, '../../build/cjs-path.cjs'),
+    input: join(__dirname, '../../build/path-cjs.cjs'),
     output: {
       file: join(__dirname, 'dist/cjs/index.js'),
       format: 'cjs',
@@ -18,8 +18,9 @@ const config = [
       copy({
         targets: [
           {
-            src: join(__dirname, '../../build/package.json'),
+            src: join(__dirname, '../../build/package-cjs.json'),
             dest: join(__dirname, './dist/cjs'),
+            rename: 'package.json',
           },
         ],
       }),
