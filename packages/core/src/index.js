@@ -6,7 +6,9 @@ class Model {
     this.storeId = storeId;
   }
   parents = new Set();
-  children = new Set();
+  get children() {
+    return new Set(this.refs.values());
+  }
   refs = new Map();
   prepared = null;
 
@@ -169,15 +171,13 @@ class Iresine {
     if (!model) {
       this.models.set(storeId, new Model(storeId));
       model = this.models.get(storeId);
-    } else {
-      model.children.clear();
     }
     this.updated.add(storeId);
 
     model.prepared = rawTemplate;
 
     const {refs, template} = this._parse(rawTemplate, {
-      currentModel: model,
+      parentModel: model,
       omitNextTemplate: true,
     });
     model.refs = refs;
@@ -187,7 +187,7 @@ class Iresine {
       setAdd(model.parents, parentModelIds);
     }
   }
-  _parse(data, {currentModel, omitNextTemplate = false} = {}) {
+  _parse(data, {parentModel, omitNextTemplate = false} = {}) {
     const fields = [[[], data]];
     const template = [[[], Array.isArray(data) ? [] : {}]];
     const refs = new Map();
@@ -216,9 +216,8 @@ class Iresine {
 
         refs.set(path, childModelId);
 
-        if (currentModel) {
-          currentModel.children.add(childModelId);
-          this._insert(childModelId, data, [currentModel.storeId]);
+        if (parentModel) {
+          this._insert(childModelId, data, [parentModel.storeId]);
         } else {
           this._insert(childModelId, data, []);
         }
