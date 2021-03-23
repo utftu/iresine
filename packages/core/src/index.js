@@ -14,15 +14,20 @@ class Model {
 }
 
 class Iresine {
-  constructor({getId, time} = {}) {
-    if (time) {
-      this._time = time;
+  constructor({getId, hooks} = {}) {
+    if (hooks) {
+      if (hooks.join) {
+        this._hooks.join = hooks.join;
+      }
+      if (hooks.parse) {
+        this._hooks.parse = hooks.parse;
+      }
     }
     if (getId) {
       this._getId = getId;
     }
   }
-  _time = false;
+  _hooks = {};
   _getId(entity) {
     if (!entity) {
       return null;
@@ -77,9 +82,6 @@ class Iresine {
   join(storeId) {
     const model = this.models.get(storeId);
     const templateObj = objectPath.joinTemplate(model.template);
-    if (this._time) {
-      this._addTime(templateObj);
-    }
     model.prepared = templateObj;
 
     for (let [path, storeId] of model.refs) {
@@ -87,6 +89,9 @@ class Iresine {
       objectPath.set(templateObj, path, templateObjChild);
     }
 
+    if (this._hooks.join) {
+      this._hooks.join(templateObj);
+    }
     return templateObj;
   }
   subscribe(modelIds, listener) {
@@ -154,11 +159,6 @@ class Iresine {
 
     return parents;
   }
-  _addTime(entity) {
-    const now = Date.now();
-    entity[this._time.timeField] = now;
-    entity[this._time.uniqField] = `${this._getId(entity)}:${now}`;
-  }
   _insert(storeId, rawTemplate, parentModelIds) {
     if (this.updated.has(storeId)) {
       return;
@@ -173,10 +173,6 @@ class Iresine {
       model.children.clear();
     }
     this.updated.add(storeId);
-
-    if (this._time) {
-      this._addTime(rawTemplate);
-    }
 
     model.prepared = rawTemplate;
 
@@ -212,6 +208,10 @@ class Iresine {
         continue;
       }
       if (structureType === 'template' && omitNextTemplate === false) {
+        if (this._hooks.parse) {
+          this._hooks.parse(data);
+        }
+
         const childModelId = this._getId(data);
 
         refs.set(path, childModelId);
