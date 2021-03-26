@@ -1,6 +1,6 @@
 {
   "name": "@iresine/react-query",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "",
   "type": "module",
   "scripts": {
@@ -29,14 +29,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@iresine/helpers": "^1.0.13"
+    "@iresine/helpers": "^1.0.14"
   },
   "peerDependencies": {
     "@iresine/core": ">=1.0.0",
     "react-query": "^3.12.1"
   },
   "devDependencies": {
-    "@iresine/core": "^1.0.13",
+    "@iresine/core": "^1.0.14",
     "@testing-library/react": "^11.2.5",
     "react-dom": "^17.0.1",
     "react-query": "^3.12.1"

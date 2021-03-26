@@ -1,6 +1,6 @@
 {
   "name": "@iresine/object-path",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "",
   "type": "module",
   "scripts": {
@@ -21,7 +21,7 @@
     "default": "./dist/cjs/prod.js"
   },
   "dependencies": {
-    "@iresine/helpers": "^1.0.13"
+    "@iresine/helpers": "^1.0.14"
   },
   "files": [
     "dist/**/*"

@@ -1,6 +1,6 @@
 {
   "name": "@iresine/core",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "",
   "main": "./dist/cjs/index.js",
   "exports": {
@@ -29,8 +29,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@iresine/helpers": "^1.0.13",
-    "@iresine/object-path": "^1.0.13"
+    "@iresine/helpers": "^1.0.14",
+    "@iresine/object-path": "^1.0.14"
   },
   "gitHead": "610973dabf4c37aaf1da1c1c1e1ac55ed9571555"
 }
