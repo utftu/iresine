@@ -25,7 +25,7 @@ class Iresine {
         this._hooks.parse = hooks.parse;
       }
       if (hooks.insert) {
-        this._hooks.insert = hooks.insert
+        this._hooks.insert = hooks.insert;
       }
     }
     if (entitiesToTick) {
@@ -69,26 +69,34 @@ class Iresine {
     return 'unknown';
   }
 
-  requestTime = null
+  requestTime = null;
   models = new Map();
   updated = new Set();
   processUpdated = new Set();
-  entitiesToTickCount = 0
+  entitiesToTickCount = 0;
   requests = [];
   processNow = false;
 
   async processRequests() {
-    for (let i = 0; i < Math.min(this.requests.length, this._requestsToTick); i++) {
+    for (
+      let i = 0;
+      i < Math.min(this.requests.length, this._requestsToTick);
+      i++
+    ) {
       const request = this.requests[i];
 
       this.requestTime = request.time;
-      request.result = await this._parse(request.data)
+      request.result = await this._parse(request.data);
       this.requestTime = null;
       setAdd(this.processUpdated, this.updated);
       this.updated.clear();
     }
 
-    for (let i = 0; i < Math.min(this.requests.length, this._requestsToTick); i++) {
+    for (
+      let i = 0;
+      i < Math.min(this.requests.length, this._requestsToTick);
+      i++
+    ) {
       const request = this.requests[i];
       if (request.listener) {
         this.subscribe(request.result.refs.values(), request.listener);
@@ -134,10 +142,10 @@ class Iresine {
   }
   async join(storeId) {
     if (this.entitiesToTickCount >= this._entitiesToTick) {
-      await Promise.resolve()
-      this.entitiesToTickCount = 0
+      await Promise.resolve();
+      this.entitiesToTickCount = 0;
     }
-    this.entitiesToTickCount++
+    this.entitiesToTickCount++;
 
     const model = this.models.get(storeId);
     const templateObj = objectPath.joinTemplate(model.template);
@@ -225,8 +233,8 @@ class Iresine {
     }
 
     if (this.entitiesToTickCount >= this._entitiesToTick) {
-      await Promise.resolve()
-      this.entitiesToTickCount = 0
+      await Promise.resolve();
+      this.entitiesToTickCount = 0;
     }
     this.entitiesToTickCount++;
 
