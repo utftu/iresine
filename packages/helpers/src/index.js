@@ -19,6 +19,17 @@ function setAdd(set, iterator) {
   }
 }
 
+function setUniq(set1, set2) {
+  const uniq = new Set();
+  for (const set1Item of set1) {
+    if (set2.has(set1Item)) {
+      continue;
+    }
+    uniq.add(set1Item);
+  }
+  return uniq;
+}
+
 function isPrimitive(data) {
   if (data === undefined || data === null) {
     return true;
@@ -32,11 +43,12 @@ function isPrimitive(data) {
   return true;
 }
 
-export {setAdd, isObject, isPrimitive, isEmptyObject};
+export {setAdd, isObject, isPrimitive, isEmptyObject, setUniq};
 
 export default {
   setAdd,
   isObject,
+  setUniq,
   isPrimitive,
   isEmptyObject,
 };

@@ -1,47 +1,23 @@
 import {Iresine} from './index.js';
+import expect from 'expect';
 
-function addUniq(entity) {
-  entity._time = Date.now();
-  Object.defineProperty(entity, 'uniq', {
-    get() {
-      return `${entity.type}:${entity.id}:${entity._time}`;
-    },
-  });
-}
-
-const iresine = new Iresine({
-  hooks: {
-    join: addUniq,
-    parse: addUniq,
-  },
-});
-
-const oldUser = {
+const iresine = new Iresine();
+const child = {
   id: '0',
-  type: 'user',
-  name: 'oldName',
-};
-const oldComment = {
-  id: '0',
-  type: 'comment',
-  text: 'oldText',
-};
-const newUser = {
-  id: '0',
-  type: 'user',
-  name: 'newName',
-};
-const newComment = {
-  id: '0',
-  type: 'comment',
-  text: 'newText',
+  type: 'child',
 };
 
-iresine.parse(oldUser);
-iresine.parse(newUser);
+const oldParent = {
+  id: '0',
+  type: 'parent',
+  child,
+};
 
-console.log('-----', 'oldUser', oldUser.uniq);
-console.log('-----', 'oldUser', newUser.uniq);
-console.log('-----', iresine.get('user:0')._time);
-iresine.join('user:0');
-console.log('-----', iresine.get('user:0')._time);
+const newParent = {
+  id: '0',
+  type: 'parent',
+};
+
+iresine.parse(oldParent);
+iresine.parse(newParent);
+console.log(iresine.models.get('child:0').parents);

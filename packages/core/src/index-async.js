@@ -1,8 +1,8 @@
 import objectPath from '@iresine/object-path';
-import {isObject, isEmptyObject, setAdd, setUniq} from '@iresine/helpers';
+import {isEmptyObject, isObject, setAdd} from '@iresine/helpers';
 
 class Model {
-  constructor(storeId) {
+  constructor(storeId, date) {
     this.storeId = storeId;
   }
   parents = new Set();
@@ -16,7 +16,7 @@ class Model {
 }
 
 class Iresine {
-  constructor({getId, hooks} = {}) {
+  constructor({getId, hooks, entitiesToTick, requestsToTick} = {}) {
     if (hooks) {
       if (hooks.join) {
         this._hooks.join = hooks.join;
@@ -24,11 +24,22 @@ class Iresine {
       if (hooks.parse) {
         this._hooks.parse = hooks.parse;
       }
+      if (hooks.insert) {
+        this._hooks.insert = hooks.insert
+      }
+    }
+    if (entitiesToTick) {
+      this._entitiesToTick = entitiesToTick;
+    }
+    if (requestsToTick) {
+      this._requestsToTick = _requestsToTick;
     }
     if (getId) {
       this._getId = getId;
     }
   }
+  _requestsToTick = 10;
+  _entitiesToTick = 300;
   _hooks = {};
   _getId(entity) {
     if (!entity) {
@@ -58,30 +69,76 @@ class Iresine {
     return 'unknown';
   }
 
+  requestTime = null
   models = new Map();
   updated = new Set();
+  processUpdated = new Set();
+  entitiesToTickCount = 0
+  requests = [];
+  processNow = false;
 
-  parse(data) {
+  async processRequests() {
+    for (let i = 0; i < Math.min(this.requests.length, this._requestsToTick); i++) {
+      const request = this.requests[i];
+
+      this.requestTime = request.time;
+      request.result = await this._parse(request.data)
+      this.requestTime = null;
+      setAdd(this.processUpdated, this.updated);
+      this.updated.clear();
+    }
+
+    for (let i = 0; i < Math.min(this.requests.length, this._requestsToTick); i++) {
+      const request = this.requests[i];
+      if (request.listener) {
+        this.subscribe(request.result.refs.values(), request.listener);
+      }
+      request.promise.resolve(request.result);
+    }
+    const parents = await this._reconciliation(this.processUpdated.values());
+    this._notify(new Set([...this.processUpdated, ...parents]));
+    this.processNow = false;
+  }
+
+  async parse(data, listener) {
     const structureType = this._getStructureType(data);
     if (structureType === 'unknown') {
       return null;
     }
-    const response = this._parse(data);
-    const parents = this._reconciliation(this.updated.values());
-    this._notify(new Set([...this.updated, ...parents]));
-    this.updated.clear();
-    return response;
+    const time = Date.now();
+    if (this._hooks.parse) {
+      return this._hooks.parse(data, time);
+    }
+
+    let resolve;
+    const promise = new Promise((localResolve) => (resolve = localResolve));
+    promise.resolve = resolve;
+
+    this.requests.push({promise, data, time, listener});
+
+    if (!this.processNow) {
+      this.processNow = true;
+      this.processRequests();
+    }
+
+    return promise;
   }
-  get(storeId) {
+  async get(storeId) {
     const model = this.models.get(storeId);
     if (model.prepared) {
       return model.prepared;
     }
     // insert in model prepared
-    this.join(storeId);
+    await this.join(storeId);
     return model.prepared;
   }
-  join(storeId) {
+  async join(storeId) {
+    if (this.entitiesToTickCount >= this._entitiesToTick) {
+      await Promise.resolve()
+      this.entitiesToTickCount = 0
+    }
+    this.entitiesToTickCount++
+
     const model = this.models.get(storeId);
     const templateObj = objectPath.joinTemplate(model.template);
     model.prepared = templateObj;
@@ -106,14 +163,14 @@ class Iresine {
       this.models.get(modelId).listeners.delete(listener);
     }
   }
-  joinRefs(template, refs) {
+  async joinRefs(template, refs) {
     if (refs.size === 1 && [...refs.keys()][0].length === 0) {
-      return this.get([...refs.values()][0]);
+      return await this.get([...refs.values()][0]);
     }
 
     const base = objectPath.joinTemplate(template);
     for (const [path, modelId] of refs.entries()) {
-      objectPath.set(base, path, this.get(modelId));
+      objectPath.set(base, path, await this.get(modelId));
     }
 
     return base;
@@ -130,7 +187,7 @@ class Iresine {
       listener([...storeIds]);
     }
   }
-  _reconciliation(storedIds) {
+  async _reconciliation(storedIds) {
     const parents = new Set();
     for (const storeId of storedIds) {
       const model = this.models.get(storeId);
@@ -156,28 +213,32 @@ class Iresine {
       if (this.updated.has(modelId)) {
         continue;
       }
-      this.join(modelId);
+      await this.join(modelId);
     }
 
     return parents;
   }
-  _insert(storeId, rawTemplate, parentModelIds) {
+  async _insert(storeId, rawTemplate, parentModelIds) {
+    // for recursive
     if (this.updated.has(storeId)) {
       return;
     }
 
+    if (this.entitiesToTickCount >= this._entitiesToTick) {
+      await Promise.resolve()
+      this.entitiesToTickCount = 0
+    }
+    this.entitiesToTickCount++;
+
     let model = this.models.get(storeId);
-    let oldChildren = null;
 
     if (!model) {
       this.models.set(storeId, new Model(storeId));
       model = this.models.get(storeId);
-    } else {
-      oldChildren = model.children;
     }
     this.updated.add(storeId);
 
-    model.prepared = rawTemplate;
+    // model.prepared = rawTemplate;
 
     const {refs, template} = this._parse(rawTemplate, {
       parentModel: model,
@@ -186,18 +247,13 @@ class Iresine {
     model.refs = refs;
     model.template = template;
 
-    if (oldChildren) {
-      const childrenToRemove = setUniq(oldChildren, model.children);
-      for (const childToRemove of childrenToRemove) {
-        this.models.get(childToRemove).parents.delete(model.storeId);
-      }
-    }
-
     if (parentModelIds) {
       setAdd(model.parents, parentModelIds);
     }
+
+    this.join(model.id);
   }
-  _parse(data, {parentModel, omitNextTemplate = false} = {}) {
+  async _parse(data, {parentModel, omitNextTemplate = false} = {}) {
     const fields = [[[], data]];
     const template = [[[], Array.isArray(data) ? [] : {}]];
     const refs = new Map();
@@ -227,9 +283,9 @@ class Iresine {
         refs.set(path, childModelId);
 
         if (parentModel) {
-          this._insert(childModelId, data, [parentModel.storeId]);
+          await this._insert(childModelId, data, [parentModel.storeId]);
         } else {
-          this._insert(childModelId, data, []);
+          await this._insert(childModelId, data, []);
         }
         continue;
       }

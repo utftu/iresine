@@ -287,10 +287,22 @@ describe('core', () => {
       expect(recreate).toEqual(data);
     });
   });
-  describe('time', () => {
-    it('add', () => {
+  describe('add uniq', () => {
+    function addUniq(entity) {
+      Object.defineProperty(entity, '_time', {
+        value: Date.now(),
+      });
+      Object.defineProperty(entity, 'uniq', {
+        get() {
+          return `${entity.type}:${entity.id}:${entity._time}`;
+        },
+      });
+    }
+    it('parse', () => {
       const iresine = new Iresine({
-        time: {timeField: '_time', uniqField: 'uniq'},
+        hooks: {
+          parse: addUniq,
+        },
       });
       const user = {
         id: '0',
@@ -298,6 +310,23 @@ describe('core', () => {
         name: 'oldUser',
       };
       iresine.parse(user);
+
+      expect(iresine.get('user:0').uniq).toBe(user.uniq);
+    });
+    it('join', () => {
+      const iresine = new Iresine({
+        hooks: {
+          join: addUniq,
+        },
+      });
+      const user = {
+        id: '0',
+        type: 'user',
+        name: 'oldUser',
+      };
+      iresine.parse(user);
+
+      expect(iresine.join('user:0').uniq.startsWith('user:0:')).toBe(true);
     });
   });
   describe('structures', () => {
@@ -355,6 +384,32 @@ describe('core', () => {
         [[], {}],
         [['map'], data.map],
       ]);
+    });
+  });
+  describe('remove old parents', () => {
+    it('single', () => {
+      const iresine = new Iresine();
+      const child = {
+        id: '0',
+        type: 'child',
+      };
+
+      const oldParent = {
+        id: '0',
+        type: 'parent',
+        child,
+      };
+
+      const newParent = {
+        id: '0',
+        type: 'parent',
+      };
+      iresine.parse(oldParent);
+      expect(iresine.models.get('child:0').parents).toEqual(
+        new Set(['parent:0'])
+      );
+      iresine.parse(newParent);
+      expect(iresine.models.get('child:0').parents).toEqual(new Set());
     });
   });
 });

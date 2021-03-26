@@ -9,9 +9,6 @@ class IresineReactQuery {
       .getQueryCache()
       .findAll()
       .forEach((query) => {
-        if (isPrimitive(query.state.data)) {
-          return;
-        }
         this.add(query.queryHash, query.state.data);
       });
 
