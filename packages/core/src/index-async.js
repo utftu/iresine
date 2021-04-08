@@ -2,7 +2,7 @@ import objectPath from '@iresine/object-path';
 import {isEmptyObject, isObject, setAdd} from '@iresine/helpers';
 
 class Model {
-  constructor(storeId, date) {
+  constructor(storeId) {
     this.storeId = storeId;
   }
   parents = new Set();
@@ -16,7 +16,7 @@ class Model {
 }
 
 class Iresine {
-  constructor({getId, hooks, entitiesToTick, requestsToTick} = {}) {
+  constructor({getId, hooks, maxEntities, maxRequests} = {}) {
     if (hooks) {
       if (hooks.join) {
         this._hooks.join = hooks.join;
@@ -28,18 +28,18 @@ class Iresine {
         this._hooks.insert = hooks.insert;
       }
     }
-    if (entitiesToTick) {
-      this._entitiesToTick = entitiesToTick;
+    if (maxEntities) {
+      this._maxEntities = maxEntities;
     }
-    if (requestsToTick) {
-      this._requestsToTick = _requestsToTick;
+    if (maxRequests) {
+      this._maxRequests = maxRequests;
     }
     if (getId) {
       this._getId = getId;
     }
   }
-  _requestsToTick = 10;
-  _entitiesToTick = 300;
+  _maxRequests = 10;
+  _maxEntities = 300;
   _hooks = {};
   _getId(entity) {
     if (!entity) {
@@ -73,16 +73,13 @@ class Iresine {
   models = new Map();
   updated = new Set();
   processUpdated = new Set();
-  entitiesToTickCount = 0;
+  entities = 0;
   requests = [];
   processNow = false;
 
-  async processRequests() {
-    for (
-      let i = 0;
-      i < Math.min(this.requests.length, this._requestsToTick);
-      i++
-    ) {
+  async process() {
+    let requestCount;
+    for (let i = 0; i < this.requests.length; i++) {
       const request = this.requests[i];
 
       this.requestTime = request.time;
@@ -90,13 +87,14 @@ class Iresine {
       this.requestTime = null;
       setAdd(this.processUpdated, this.updated);
       this.updated.clear();
+
+      if (i + 1 >= this._maxRequests || i + 1 === this.requests.length) {
+        requestCount = i;
+        break;
+      }
     }
 
-    for (
-      let i = 0;
-      i < Math.min(this.requests.length, this._requestsToTick);
-      i++
-    ) {
+    for (let i = 0; i < requestCount; i++) {
       const request = this.requests[i];
       if (request.listener) {
         this.subscribe(request.result.refs.values(), request.listener);
@@ -105,15 +103,24 @@ class Iresine {
     }
     const parents = await this._reconciliation(this.processUpdated.values());
     this._notify(new Set([...this.processUpdated, ...parents]));
-    this.processNow = false;
+    this.requests = this.requests.slice(requestCount);
+
+    if (this.requests.length >= 0) {
+      await Promise.resolve();
+      this.process();
+    } else {
+      this.processNow = false;
+    }
   }
 
-  async parse(data, listener) {
+  async parse(data, {listener, time}) {
     const structureType = this._getStructureType(data);
     if (structureType === 'unknown') {
       return null;
     }
-    const time = Date.now();
+    if (time) {
+      time = Date.now();
+    }
     if (this._hooks.parse) {
       return this._hooks.parse(data, time);
     }
@@ -126,7 +133,7 @@ class Iresine {
 
     if (!this.processNow) {
       this.processNow = true;
-      this.processRequests();
+      this.process();
     }
 
     return promise;
@@ -141,11 +148,11 @@ class Iresine {
     return model.prepared;
   }
   async join(storeId) {
-    if (this.entitiesToTickCount >= this._entitiesToTick) {
+    if (this.entities >= this._maxEntities) {
       await Promise.resolve();
-      this.entitiesToTickCount = 0;
+      this.entities = 0;
     }
-    this.entitiesToTickCount++;
+    this.entities++;
 
     const model = this.models.get(storeId);
     const templateObj = objectPath.joinTemplate(model.template);
@@ -232,11 +239,11 @@ class Iresine {
       return;
     }
 
-    if (this.entitiesToTickCount >= this._entitiesToTick) {
+    if (this.entities >= this._maxEntities) {
       await Promise.resolve();
-      this.entitiesToTickCount = 0;
+      this.entities = 0;
     }
-    this.entitiesToTickCount++;
+    this.entities++;
 
     let model = this.models.get(storeId);
 
