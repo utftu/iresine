@@ -1,5 +1,5 @@
 import objectPath from '@iresine/object-path';
-import {isEmptyObject, isObject, setAdd, setUniq} from '@iresine/helpers';
+import {isObject, isEmptyObject, setAdd, setUniq} from '@iresine/helpers';
 
 class Model {
   constructor(storeId) {
@@ -10,36 +10,26 @@ class Model {
     return new Set(this.refs.values());
   }
   refs = new Map();
-  requestTime = null;
   prepared = null;
 
   listeners = new Set();
 }
 
 class Iresine {
-  constructor({getId, hooks = {}, maxEntities, maxRequests} = {}) {
-    if (hooks.join) {
-      this._hooks.join = hooks.join;
-    }
-    if (hooks.insert) {
-      this._hooks.insert = hooks.insert;
-    }
-    if (maxEntities) {
-      this._maxEntities = maxEntities;
-    }
-    if (maxRequests) {
-      this._maxRequests = maxRequests;
+  constructor({getId, hooks} = {}) {
+    if (hooks) {
+      if (hooks.join) {
+        this._hooks.join = hooks.join;
+      }
+      if (hooks.parse) {
+        this._hooks.parse = hooks.parse;
+      }
     }
     if (getId) {
       this._getId = getId;
     }
   }
-  _maxRequests = 10;
-  _maxEntities = 300;
-  _hooks = {
-    join: null,
-    insert: null,
-  };
+  _hooks = {};
   _getId(entity) {
     if (!entity) {
       return null;
@@ -68,87 +58,36 @@ class Iresine {
     return 'unknown';
   }
 
-  requestTime = null;
   models = new Map();
   updated = new Set();
-  processUpdated = new Set();
-  entities = 0;
-  requests = [];
-  processNow = false;
 
-  async parse(data, {listener, time = Date.now()} = {}) {
+  parse(data) {
     const structureType = this._getStructureType(data);
     if (structureType === 'unknown') {
       return null;
     }
-    if (this._hooks.parse) {
-      return this._hooks.parse(data, time);
-    }
-
-    let resolve;
-    const promise = new Promise((localResolve) => (resolve = localResolve));
-    promise.resolve = resolve;
-
-    this.requests.push({promise, data, time, listener});
-
-    if (!this.processNow) {
-      this.processNow = true;
-      this.process();
-    }
-
-    return promise;
+    const response = this._parse(data);
+    const parents = this._reconciliation(this.updated.values());
+    this._notify(new Set([...this.updated, ...parents]));
+    this.updated.clear();
+    return response;
   }
-
-  async process() {
-    let requestCount;
-    for (let i = 0; i < this.requests.length; i++) {
-      const request = this.requests[i];
-
-      this.requestTime = request.time;
-      request.result = await this._parse(request.data);
-      this.requestTime = null;
-      setAdd(this.processUpdated, this.updated);
-      this.updated.clear();
-
-      if (i + 1 >= this._maxRequests || i + 1 === this.requests.length) {
-        requestCount = i + 1;
-        break;
-      }
+  get(storeId) {
+    const model = this.models.get(storeId);
+    if (model.prepared) {
+      return model.prepared;
     }
-
-    for (let i = 0; i < requestCount; i++) {
-      const request = this.requests[i];
-      if (request.listener) {
-        this.subscribe(request.result.refs.values(), request.listener);
-      }
-      request.promise.resolve(request.result);
-    }
-    const parents = await this._reconciliation(this.processUpdated.values());
-    this._notify(new Set([...this.processUpdated, ...parents]));
-    this.requests = this.requests.slice(requestCount);
-
-    this.processUpdated.clear();
-    if (this.requests.length > 0) {
-      await new Promise(setImmediate);
-      this.process();
-    } else {
-      this.processNow = false;
-    }
+    // insert in model prepared
+    this.join(storeId);
+    return model.prepared;
   }
-
-  async join(storeId) {
-    if (this.entities >= this._maxEntities) {
-      await new Promise(setImmediate);
-      this.entities = 0;
-    }
-    this.entities++;
-
+  join(storeId) {
     const model = this.models.get(storeId);
     const templateObj = objectPath.joinTemplate(model.template);
     model.prepared = templateObj;
 
     for (let [path, storeId] of model.refs) {
-      const templateObjChild = await this.get(this.models.get(storeId).storeId);
+      const templateObjChild = this.get(this.models.get(storeId).storeId);
       objectPath.set(templateObj, path, templateObjChild);
     }
 
@@ -157,17 +96,6 @@ class Iresine {
     }
     return templateObj;
   }
-
-  async get(storeId) {
-    const model = this.models.get(storeId);
-    if (model.prepared) {
-      return model.prepared;
-    }
-    // insert in model prepared
-    await this.join(storeId);
-    return model.prepared;
-  }
-
   subscribe(modelIds, listener) {
     for (const modelId of modelIds) {
       this.models.get(modelId).listeners.add(listener);
@@ -178,14 +106,14 @@ class Iresine {
       this.models.get(modelId).listeners.delete(listener);
     }
   }
-  async joinRefs(template, refs) {
+  joinRefs(template, refs) {
     if (refs.size === 1 && [...refs.keys()][0].length === 0) {
-      return await this.get([...refs.values()][0]);
+      return this.get([...refs.values()][0]);
     }
 
     const base = objectPath.joinTemplate(template);
     for (const [path, modelId] of refs.entries()) {
-      objectPath.set(base, path, await this.get(modelId));
+      objectPath.set(base, path, this.get(modelId));
     }
 
     return base;
@@ -202,7 +130,7 @@ class Iresine {
       listener([...storeIds]);
     }
   }
-  async _reconciliation(storedIds) {
+  _reconciliation(storedIds) {
     const parents = new Set();
     for (const storeId of storedIds) {
       const model = this.models.get(storeId);
@@ -212,7 +140,7 @@ class Iresine {
     }
 
     for (const modelId of parents) {
-      if (this.processUpdated.has(modelId)) {
+      if (this.updated.has(modelId)) {
         continue;
       }
       const model = this.models.get(modelId);
@@ -225,25 +153,18 @@ class Iresine {
     }
 
     for (const modelId of parents) {
-      if (this.processUpdated.has(modelId)) {
+      if (this.updated.has(modelId)) {
         continue;
       }
-      await this.join(modelId);
+      this.join(modelId);
     }
 
     return parents;
   }
-  async _insert(storeId, rawTemplate, parentModelsId) {
-    // for recursive
+  _insert(storeId, rawTemplate, parentModelIds) {
     if (this.updated.has(storeId)) {
       return;
     }
-
-    if (this.entities >= this._maxEntities) {
-      await new Promise(setImmediate);
-      this.entities = 0;
-    }
-    this.entities++;
 
     let model = this.models.get(storeId);
     let oldChildren = null;
@@ -258,7 +179,7 @@ class Iresine {
 
     model.prepared = rawTemplate;
 
-    const {refs, template} = await this._parse(rawTemplate, {
+    const {refs, template} = this._parse(rawTemplate, {
       parentModel: model,
       omitNextTemplate: true,
     });
@@ -272,11 +193,11 @@ class Iresine {
       }
     }
 
-    if (parentModelsId) {
-      setAdd(model.parents, parentModelsId);
+    if (parentModelIds) {
+      setAdd(model.parents, parentModelIds);
     }
   }
-  async _parse(data, {parentModel, omitNextTemplate = false} = {}) {
+  _parse(data, {parentModel, omitNextTemplate = false} = {}) {
     const fields = [[[], data]];
     const template = [[[], Array.isArray(data) ? [] : {}]];
     const refs = new Map();
@@ -297,14 +218,18 @@ class Iresine {
         continue;
       }
       if (structureType === 'template' && omitNextTemplate === false) {
+        if (this._hooks.parse) {
+          this._hooks.parse(data);
+        }
+
         const childModelId = this._getId(data);
 
         refs.set(path, childModelId);
 
         if (parentModel) {
-          await this._insert(childModelId, data, [parentModel.storeId]);
+          this._insert(childModelId, data, [parentModel.storeId]);
         } else {
-          await this._insert(childModelId, data, []);
+          this._insert(childModelId, data, []);
         }
         continue;
       }
@@ -322,15 +247,15 @@ class Iresine {
         continue;
       }
       if (structureType === 'array') {
+        if (data.length === 0) {
+          template.push([path, []]);
+        }
         for (let i = 0; i < data.length; i++) {
           let key = i.toString();
           if (Array.isArray(data[i])) {
             key = `[]${key}`;
           }
           fields.push([[...path, key], data[key]]);
-        }
-        if (data.length === 0) {
-          template.push([path, []]);
         }
         continue;
       }

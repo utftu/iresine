@@ -1,4 +1,4 @@
-import {Iresine} from './index-async.js';
+import {Iresine} from './index.js';
 import expect from 'expect';
 import mock from 'jest-mock';
 
@@ -23,33 +23,23 @@ const newComment = {
   text: 'newText',
 };
 
-function onTick(callback, controls) {
-  if (controls.stop) {
-    return;
-  }
-  setImmediate(() => {
-    callback();
-    onTick(callback, controls);
-  });
-}
-
 describe('core', () => {
   describe('.join()', () => {
-    it('join single template ', async () => {
+    it('join single template ', () => {
       const store = new Iresine();
 
-      await store.parse(oldUser);
-      expect(await store.join('user:0')).toEqual(oldUser);
+      store.parse(oldUser);
+      expect(store.join('user:0')).toEqual(oldUser);
     });
   });
   describe('.parse()', () => {
-    it('parse single template', async () => {
+    it('parse single template', () => {
       const store = new Iresine();
 
-      await store.parse(oldUser);
-      expect(await store.join('user:0')).toEqual(oldUser);
+      store.parse(oldUser);
+      expect(store.join('user:0')).toEqual(oldUser);
     });
-    it('multi', async () => {
+    it('multi', () => {
       const store = new Iresine();
       const multi = {
         object: {
@@ -58,20 +48,20 @@ describe('core', () => {
         array: [oldComment],
       };
 
-      await store.parse(multi);
-      expect(await store.join('user:0')).toEqual(multi.object['0']);
-      expect(await store.join('comment:0')).toEqual(multi.array['0']);
+      store.parse(multi);
+      expect(store.join('user:0')).toEqual(multi.object['0']);
+      expect(store.join('comment:0')).toEqual(multi.array['0']);
     });
   });
   describe('update', () => {
-    it('update single template', async () => {
+    it('update single template', () => {
       const store = new Iresine();
 
-      await store.parse(oldUser);
-      await store.parse(newUser);
-      expect(await store.join('user:0')).toEqual(newUser);
+      store.parse(oldUser);
+      store.parse(newUser);
+      expect(store.join('user:0')).toEqual(newUser);
     });
-    it('update multi templates', async () => {
+    it('update multi templates', () => {
       const store = new Iresine();
       const oldRequest = {
         users: [oldUser],
@@ -86,24 +76,24 @@ describe('core', () => {
         comments: [newComment],
       };
 
-      await store.parse(oldRequest);
-      await store.parse(newRequest);
-      expect(await store.join('user:0')).toEqual(newRequest.users['0']);
-      expect(await store.join('comment:0')).toEqual(newRequest.comments['0']);
+      store.parse(oldRequest);
+      store.parse(newRequest);
+      expect(store.join('user:0')).toEqual(newRequest.users['0']);
+      expect(store.join('comment:0')).toEqual(newRequest.comments['0']);
     });
   });
   describe('.get()', () => {
-    it('single', async () => {
+    it('single', () => {
       const store = new Iresine();
 
-      await store.parse(oldUser);
-      const userResult = await store.get('user:0');
-      const userResult1 = await store.get('user:0');
+      store.parse(oldUser);
+      const userResult = store.get('user:0');
+      const userResult1 = store.get('user:0');
       expect(userResult).toBe(userResult1);
     });
   });
   describe('.template', () => {
-    it('object', async () => {
+    it('object', () => {
       const store = new Iresine();
       const data = {
         count: 0,
@@ -117,7 +107,7 @@ describe('core', () => {
         ],
       };
 
-      const {template} = await store.parse(data);
+      const {template} = store.parse(data);
       expect(template[0][0]).toEqual([]);
       expect(template[0][1]).toEqual({});
       expect(template[1][0]).toEqual(['count']);
@@ -127,7 +117,7 @@ describe('core', () => {
       expect(template[3][0]).toEqual(['[]array', '0', 'count']);
       expect(template[3][1]).toEqual(2);
     });
-    it('array', async () => {
+    it('array', () => {
       const store = new Iresine();
 
       const data = [
@@ -136,7 +126,7 @@ describe('core', () => {
         },
       ];
 
-      const {template} = await store.parse(data);
+      const {template} = store.parse(data);
       expect(template[0][0]).toEqual([]);
       expect(template[0][1]).toEqual([]);
       expect(template[1][0]).toEqual(['0', 'count']);
@@ -144,13 +134,13 @@ describe('core', () => {
     });
   });
   describe('.refs', () => {
-    it('single', async () => {
+    it('single', () => {
       const store = new Iresine();
 
-      const {refs} = await store.parse(oldUser);
+      const {refs} = store.parse(oldUser);
       expect(refs).toEqual(new Map([[[], 'user:0']]));
     });
-    it('multi', async () => {
+    it('multi', () => {
       const store = new Iresine();
       const multi = {
         object: {
@@ -159,7 +149,7 @@ describe('core', () => {
         array: [oldComment],
       };
 
-      const {refs} = await store.parse(multi);
+      const {refs} = store.parse(multi);
       expect(refs).toEqual(
         new Map([
           [['object', '0'], 'user:0'],
@@ -169,31 +159,31 @@ describe('core', () => {
     });
   });
   describe('.subscribe()', () => {
-    it('subscribe to single template', async () => {
+    it('subscribe to single template', () => {
       const store = new Iresine();
 
-      const {refs} = await store.parse(oldUser);
+      const {refs} = store.parse(oldUser);
       const modelIds = [...refs.values()];
 
       const callback = mock.fn();
       store.subscribe(modelIds, callback);
       expect(callback.mock.calls.length).toBe(0);
-      await store.parse(oldComment);
+      store.parse(oldComment);
       expect(callback.mock.calls.length).toBe(0);
-      await store.parse(newUser);
+      store.parse(newUser);
       expect(callback.mock.calls.length).toBe(1);
       expect(callback.mock.calls[0].length).toBe(1);
       expect(callback.mock.calls[0][0]).toEqual(['user:0']);
-      await store.parse(newComment);
+      store.parse(newComment);
       expect(callback.mock.calls.length).toBe(1);
     });
-    it('subscribe to multi templates', async () => {
+    it('subscribe to multi templates', () => {
       const store = new Iresine();
 
       const callback = mock.fn();
-      const {refs} = await store.parse([oldUser, oldComment]);
+      const {refs} = store.parse([oldUser, oldComment]);
       store.subscribe([...refs.values()], callback);
-      await store.parse([newUser, newComment]);
+      store.parse([newUser, newComment]);
       expect(callback.mock.calls.length).toBe(1);
       expect(callback.mock.calls[0].length).toBe(1);
       expect(callback.mock.calls[0][0].length).toBe(2);
@@ -202,20 +192,20 @@ describe('core', () => {
     });
   });
   describe('.unsubscribe()', () => {
-    it('single', async () => {
+    it('single', () => {
       const store = new Iresine();
 
-      const {refs} = await store.parse(oldUser);
+      const {refs} = store.parse(oldUser);
       const modelIds = [...refs.values()];
       const callback = mock.fn();
       store.subscribe(modelIds, callback);
       store.unsubscribe(modelIds, callback);
-      await store.parse(newUser);
+      store.parse(newUser);
       expect(callback.mock.calls.length).toBe(0);
     });
   });
   describe('recursive', () => {
-    it('two', async () => {
+    it('two', () => {
       const store = new Iresine();
 
       const user0 = {
@@ -233,11 +223,11 @@ describe('core', () => {
       user0.friend = user1;
       user1.friend = user0;
 
-      await store.parse(user0);
-      expect(await store.get('user:0')).toBe(user0);
-      expect(await store.join('user:0')).toEqual(user0);
+      store.parse(user0);
+      expect(store.get('user:0')).toBe(user0);
+      expect(store.join('user:0')).toEqual(user0);
     });
-    it('three', async () => {
+    it('three', () => {
       const store = new Iresine();
 
       const user0 = {
@@ -262,20 +252,20 @@ describe('core', () => {
       user1.love = user2;
       user2.love = user0;
 
-      await store.parse(user0);
-      expect(await store.get('user:0')).toBe(user0);
-      expect(await store.join('user:0')).toEqual(user0);
+      store.parse(user0);
+      expect(store.get('user:0')).toBe(user0);
+      expect(store.join('user:0')).toEqual(user0);
     });
   });
   describe('.joinRefs()', () => {
-    it('model', async () => {
+    it('model', () => {
       const store = new Iresine();
 
-      const {refs, template} = await store.parse(oldUser);
-      const recreate = await store.joinRefs(template, refs);
+      const {refs, template} = store.parse(oldUser);
+      const recreate = store.joinRefs(template, refs);
       expect(recreate).toBe(oldUser);
     });
-    it('structure', async () => {
+    it('structure', () => {
       const store = new Iresine();
 
       const data = {
@@ -292,8 +282,8 @@ describe('core', () => {
         ],
       };
 
-      const {refs, template} = await store.parse(data);
-      const recreate = await store.joinRefs(template, refs);
+      const {refs, template} = store.parse(data);
+      const recreate = store.joinRefs(template, refs);
       expect(recreate).toEqual(data);
     });
   });
@@ -308,22 +298,22 @@ describe('core', () => {
         },
       });
     }
-    // it('parse', () => {
-    //   const iresine = new Iresine({
-    //     hooks: {
-    //       parse: addUniq,
-    //     },
-    //   });
-    //   const user = {
-    //     id: '0',
-    //     type: 'user',
-    //     name: 'oldUser',
-    //   };
-    //   iresine.parse(user);
-    //
-    //   expect(iresine.get('user:0').uniq).toBe(user.uniq);
-    // });
-    it('join', async () => {
+    it('parse', () => {
+      const iresine = new Iresine({
+        hooks: {
+          parse: addUniq,
+        },
+      });
+      const user = {
+        id: '0',
+        type: 'user',
+        name: 'oldUser',
+      };
+      iresine.parse(user);
+
+      expect(iresine.get('user:0').uniq).toBe(user.uniq);
+    });
+    it('join', () => {
       const iresine = new Iresine({
         hooks: {
           join: addUniq,
@@ -334,64 +324,62 @@ describe('core', () => {
         type: 'user',
         name: 'oldUser',
       };
-      await iresine.parse(user);
+      iresine.parse(user);
 
-      expect((await iresine.join('user:0')).uniq.startsWith('user:0:')).toBe(
-        true
-      );
+      expect(iresine.join('user:0').uniq.startsWith('user:0:')).toBe(true);
     });
   });
   describe('structures', () => {
-    it('boolean', async () => {
+    it('boolean', () => {
       const iresine = new Iresine();
 
-      const result = await iresine.parse(true);
+      const result = iresine.parse(true);
       expect(result).toBe(null);
     });
-    it('number', async () => {
+    it('number', () => {
       const iresine = new Iresine();
 
-      const result = await iresine.parse(42);
+      const result = iresine.parse(42);
       expect(result).toBe(null);
     });
-    it('string', async () => {
+    it('string', () => {
       const iresine = new Iresine();
 
-      const result = await iresine.parse('hello');
+      const result = iresine.parse('hello');
       expect(result).toBe(null);
     });
-    it('null', async () => {
+    it('null', () => {
       const iresine = new Iresine();
 
-      const result = await iresine.parse(null);
+      const result = iresine.parse(null);
       expect(result).toBe(null);
     });
-    it('undefined', async () => {
+    it('undefined', () => {
       const iresine = new Iresine();
 
-      const result = await iresine.parse(null);
+      const result = iresine.parse(null);
       expect(result).toBe(null);
     });
-    it('map', async () => {
+    it('map', () => {
       const iresine = new Iresine();
 
-      const result = await iresine.parse(new Map());
+      const result = iresine.parse(new Map());
       expect(result).toBe(null);
     });
-    it('set', async () => {
+    it('set', () => {
       const iresine = new Iresine();
 
-      const result = await iresine.parse(new Set());
+      const result = iresine.parse(new Set());
       expect(result).toBe(null);
     });
-    it('map in deep', async () => {
+    it('map in deep', () => {
       const iresine = new Iresine();
 
       const data = {
         map: new Map([[1, 1]]),
       };
 
-      const {template} = await iresine.parse(data);
+      const {template} = iresine.parse(data);
       expect(template).toEqual([
         [[], {}],
         [['map'], data.map],
@@ -399,7 +387,7 @@ describe('core', () => {
     });
   });
   describe('remove old parents', () => {
-    it('single', async () => {
+    it('single', () => {
       const iresine = new Iresine();
       const child = {
         id: '0',
@@ -416,74 +404,12 @@ describe('core', () => {
         id: '0',
         type: 'parent',
       };
-      await iresine.parse(oldParent);
-      expect((await iresine.models.get('child:0')).parents).toEqual(
+      iresine.parse(oldParent);
+      expect(iresine.models.get('child:0').parents).toEqual(
         new Set(['parent:0'])
       );
-      await iresine.parse(newParent);
-      expect((await iresine.models.get('child:0')).parents).toEqual(new Set());
-    });
-  });
-  describe('async', () => {
-    it('simple', async () => {
-      const iresine = new Iresine();
-      let countTick = 0;
-      const controls = {};
-      onTick(() => (countTick = countTick + 1), controls);
-
-      await iresine.parse(oldUser);
-      controls.stop = true;
-      expect(countTick).toBe(0);
-    });
-    it('3 entities tick', async () => {
-      const iresine = new Iresine({
-        maxEntities: 1,
-      });
-
-      let countTick = 0;
-      const controls = {};
-      onTick(() => (countTick = countTick + 1), controls);
-
-      await iresine.parse([oldUser, oldComment, {id: '0', type: 'any'}]);
-      controls.stop = true;
-      expect(countTick).toBe(2);
-    });
-    it('1 process tick', async () => {
-      let countRequests = 0;
-      let countTicks = 0;
-      const controls = {};
-      onTick(() => (countTicks = countTicks + 1), controls);
-      const iresine = new Iresine({
-        maxRequests: 2,
-      });
-
-      await iresine.parse(oldUser);
-      iresine.subscribe(['user:0'], () => countRequests++);
-      const promise1 = iresine.parse(oldUser);
-      const promise2 = iresine.parse(oldUser);
-      await Promise.all([promise1, promise2]);
-      controls.stop = true;
-      expect(countRequests).toBe(1);
-      expect(countTicks).toBe(0);
-    });
-    it('2 process tick', async () => {
-      let countRequests = 0;
-      let countTicks = 0;
-      const controls = {};
-      onTick(() => (countTicks = countTicks + 1), controls);
-
-      const iresine = new Iresine({
-        maxRequests: 1,
-      });
-
-      await iresine.parse(oldUser);
-      iresine.subscribe(['user:0'], () => countRequests++);
-      const promise1 = iresine.parse(oldUser);
-      const promise2 = iresine.parse(oldUser);
-      await Promise.all([promise1, promise2]);
-      controls.stop = true;
-      expect(countRequests).toBe(2);
-      expect(countTicks).toBe(1);
+      iresine.parse(newParent);
+      expect(iresine.models.get('child:0').parents).toEqual(new Set());
     });
   });
 });
