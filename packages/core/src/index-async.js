@@ -1,5 +1,5 @@
 import objectPath from '@iresine/object-path';
-import {isEmptyObject, isObject, setAdd} from '@iresine/helpers';
+import {isEmptyObject, isObject, setAdd, setUniq} from '@iresine/helpers';
 
 class Model {
   constructor(storeId) {
@@ -10,23 +10,19 @@ class Model {
     return new Set(this.refs.values());
   }
   refs = new Map();
+  requestTime = null;
   prepared = null;
 
   listeners = new Set();
 }
 
 class Iresine {
-  constructor({getId, hooks, maxEntities, maxRequests} = {}) {
-    if (hooks) {
-      if (hooks.join) {
-        this._hooks.join = hooks.join;
-      }
-      if (hooks.parse) {
-        this._hooks.parse = hooks.parse;
-      }
-      if (hooks.insert) {
-        this._hooks.insert = hooks.insert;
-      }
+  constructor({getId, hooks = {}, maxEntities, maxRequests} = {}) {
+    if (hooks.join) {
+      this._hooks.join = hooks.join;
+    }
+    if (hooks.insert) {
+      this._hooks.insert = hooks.insert;
     }
     if (maxEntities) {
       this._maxEntities = maxEntities;
@@ -40,7 +36,10 @@ class Iresine {
   }
   _maxRequests = 10;
   _maxEntities = 300;
-  _hooks = {};
+  _hooks = {
+    join: null,
+    insert: null,
+  };
   _getId(entity) {
     if (!entity) {
       return null;
@@ -77,49 +76,10 @@ class Iresine {
   requests = [];
   processNow = false;
 
-  async process() {
-    let requestCount;
-    for (let i = 0; i < this.requests.length; i++) {
-      const request = this.requests[i];
-
-      this.requestTime = request.time;
-      request.result = await this._parse(request.data);
-      this.requestTime = null;
-      setAdd(this.processUpdated, this.updated);
-      this.updated.clear();
-
-      if (i + 1 >= this._maxRequests || i + 1 === this.requests.length) {
-        requestCount = i;
-        break;
-      }
-    }
-
-    for (let i = 0; i < requestCount; i++) {
-      const request = this.requests[i];
-      if (request.listener) {
-        this.subscribe(request.result.refs.values(), request.listener);
-      }
-      request.promise.resolve(request.result);
-    }
-    const parents = await this._reconciliation(this.processUpdated.values());
-    this._notify(new Set([...this.processUpdated, ...parents]));
-    this.requests = this.requests.slice(requestCount);
-
-    if (this.requests.length >= 0) {
-      await Promise.resolve();
-      this.process();
-    } else {
-      this.processNow = false;
-    }
-  }
-
-  async parse(data, {listener, time}) {
+  async parse(data, {listener, time = Date.now()} = {}) {
     const structureType = this._getStructureType(data);
     if (structureType === 'unknown') {
       return null;
-    }
-    if (time) {
-      time = Date.now();
     }
     if (this._hooks.parse) {
       return this._hooks.parse(data, time);
@@ -138,18 +98,47 @@ class Iresine {
 
     return promise;
   }
-  async get(storeId) {
-    const model = this.models.get(storeId);
-    if (model.prepared) {
-      return model.prepared;
+
+  async process() {
+    let requestCount;
+    for (let i = 0; i < this.requests.length; i++) {
+      const request = this.requests[i];
+
+      this.requestTime = request.time;
+      request.result = await this._parse(request.data);
+      this.requestTime = null;
+      setAdd(this.processUpdated, this.updated);
+      this.updated.clear();
+
+      if (i + 1 >= this._maxRequests || i + 1 === this.requests.length) {
+        requestCount = i + 1;
+        break;
+      }
     }
-    // insert in model prepared
-    await this.join(storeId);
-    return model.prepared;
+
+    for (let i = 0; i < requestCount; i++) {
+      const request = this.requests[i];
+      if (request.listener) {
+        this.subscribe(request.result.refs.values(), request.listener);
+      }
+      request.promise.resolve(request.result);
+    }
+    const parents = await this._reconciliation(this.processUpdated.values());
+    this._notify(new Set([...this.processUpdated, ...parents]));
+    this.requests = this.requests.slice(requestCount);
+
+    this.processUpdated.clear();
+    if (this.requests.length > 0) {
+      await new Promise(setImmediate);
+      this.process();
+    } else {
+      this.processNow = false;
+    }
   }
+
   async join(storeId) {
     if (this.entities >= this._maxEntities) {
-      await Promise.resolve();
+      await new Promise(setImmediate);
       this.entities = 0;
     }
     this.entities++;
@@ -159,7 +148,7 @@ class Iresine {
     model.prepared = templateObj;
 
     for (let [path, storeId] of model.refs) {
-      const templateObjChild = this.get(this.models.get(storeId).storeId);
+      const templateObjChild = await this.get(this.models.get(storeId).storeId);
       objectPath.set(templateObj, path, templateObjChild);
     }
 
@@ -168,6 +157,17 @@ class Iresine {
     }
     return templateObj;
   }
+
+  async get(storeId) {
+    const model = this.models.get(storeId);
+    if (model.prepared) {
+      return model.prepared;
+    }
+    // insert in model prepared
+    await this.join(storeId);
+    return model.prepared;
+  }
+
   subscribe(modelIds, listener) {
     for (const modelId of modelIds) {
       this.models.get(modelId).listeners.add(listener);
@@ -212,7 +212,7 @@ class Iresine {
     }
 
     for (const modelId of parents) {
-      if (this.updated.has(modelId)) {
+      if (this.processUpdated.has(modelId)) {
         continue;
       }
       const model = this.models.get(modelId);
@@ -225,7 +225,7 @@ class Iresine {
     }
 
     for (const modelId of parents) {
-      if (this.updated.has(modelId)) {
+      if (this.processUpdated.has(modelId)) {
         continue;
       }
       await this.join(modelId);
@@ -233,40 +233,48 @@ class Iresine {
 
     return parents;
   }
-  async _insert(storeId, rawTemplate, parentModelIds) {
+  async _insert(storeId, rawTemplate, parentModelsId) {
     // for recursive
     if (this.updated.has(storeId)) {
       return;
     }
 
     if (this.entities >= this._maxEntities) {
-      await Promise.resolve();
+      await new Promise(setImmediate);
       this.entities = 0;
     }
     this.entities++;
 
     let model = this.models.get(storeId);
+    let oldChildren = null;
 
     if (!model) {
       this.models.set(storeId, new Model(storeId));
       model = this.models.get(storeId);
+    } else {
+      oldChildren = model.children;
     }
     this.updated.add(storeId);
 
-    // model.prepared = rawTemplate;
+    model.prepared = rawTemplate;
 
-    const {refs, template} = this._parse(rawTemplate, {
+    const {refs, template} = await this._parse(rawTemplate, {
       parentModel: model,
       omitNextTemplate: true,
     });
     model.refs = refs;
     model.template = template;
 
-    if (parentModelIds) {
-      setAdd(model.parents, parentModelIds);
+    if (oldChildren) {
+      const childrenToRemove = setUniq(oldChildren, model.children);
+      for (const childToRemove of childrenToRemove) {
+        this.models.get(childToRemove).parents.delete(model.storeId);
+      }
     }
 
-    this.join(model.id);
+    if (parentModelsId) {
+      setAdd(model.parents, parentModelsId);
+    }
   }
   async _parse(data, {parentModel, omitNextTemplate = false} = {}) {
     const fields = [[[], data]];
@@ -289,10 +297,6 @@ class Iresine {
         continue;
       }
       if (structureType === 'template' && omitNextTemplate === false) {
-        if (this._hooks.parse) {
-          this._hooks.parse(data);
-        }
-
         const childModelId = this._getId(data);
 
         refs.set(path, childModelId);
@@ -318,15 +322,15 @@ class Iresine {
         continue;
       }
       if (structureType === 'array') {
-        if (data.length === 0) {
-          template.push([path, []]);
-        }
         for (let i = 0; i < data.length; i++) {
           let key = i.toString();
           if (Array.isArray(data[i])) {
             key = `[]${key}`;
           }
           fields.push([[...path, key], data[key]]);
+        }
+        if (data.length === 0) {
+          template.push([path, []]);
         }
         continue;
       }
