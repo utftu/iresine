@@ -1,4 +1,5 @@
 import objectPath from '@iresine/object-path';
+import {getControlledPromise} from './utils.js'
 import {isEmptyObject, isObject, setAdd, setUniq} from '@iresine/helpers';
 
 class Model {
@@ -73,26 +74,22 @@ class Iresine {
   updated = new Set();
   processUpdated = new Set();
   entities = 0;
+  currentRequest = null
   requests = [];
-  processNow = false;
+  processing = false;
 
   async parse(data, {listener, time = Date.now()} = {}) {
     const structureType = this._getStructureType(data);
     if (structureType === 'unknown') {
       return null;
     }
-    if (this._hooks.parse) {
-      return this._hooks.parse(data, time);
-    }
 
-    let resolve;
-    const promise = new Promise((localResolve) => (resolve = localResolve));
-    promise.resolve = resolve;
+    const promise = getControlledPromise()
 
     this.requests.push({promise, data, time, listener});
 
-    if (!this.processNow) {
-      this.processNow = true;
+    if (!this.processing) {
+      this.processing = true;
       this.process();
     }
 
@@ -105,7 +102,9 @@ class Iresine {
       const request = this.requests[i];
 
       this.requestTime = request.time;
+      this.currentRequest = request
       request.result = await this._parse(request.data);
+      this.currentRequest = null
       this.requestTime = null;
       setAdd(this.processUpdated, this.updated);
       this.updated.clear();
@@ -132,7 +131,7 @@ class Iresine {
       await new Promise(setImmediate);
       this.process();
     } else {
-      this.processNow = false;
+      this.processing = false;
     }
   }
 
@@ -275,6 +274,68 @@ class Iresine {
     if (parentModelsId) {
       setAdd(model.parents, parentModelsId);
     }
+  }
+  async _parseNew(data, {parentModel, omitNextTemplate = false} = {}) {
+    const fields = [[[], data]];
+    const template = [[[], Array.isArray(data) ? [] : {}]];
+    const refs = new Map();
+
+    for (let i = 0; i < fields.length; i++) {
+      if (i === 1) {
+        omitNextTemplate = false;
+      }
+      const field = fields[i];
+
+      const path = field[0];
+      const data = field[1];
+
+      const structureType = this._getStructureType(data);
+
+      if (structureType === 'unknown') {
+        template.push([path, data]);
+        continue;
+      }
+      if (structureType === 'template' && omitNextTemplate === false) {
+        const childModelId = this._getId(data);
+
+        refs.set(path, childModelId);
+
+        if (parentModel) {
+          await this._insert(childModelId, data, [parentModel.storeId]);
+        } else {
+          await this._insert(childModelId, data, []);
+        }
+        continue;
+      }
+      if (structureType === 'object' || structureType === 'template') {
+        for (let key in data) {
+          let pathKey = key;
+          if (Array.isArray(data[key])) {
+            pathKey = `[]${key}`;
+          }
+          fields.push([[...path, pathKey], data[key]]);
+        }
+        if (isEmptyObject(data)) {
+          template.push([path, {}]);
+        }
+        continue;
+      }
+      if (structureType === 'array') {
+        for (let i = 0; i < data.length; i++) {
+          let key = i.toString();
+          if (Array.isArray(data[i])) {
+            key = `[]${key}`;
+          }
+          fields.push([[...path, key], data[key]]);
+        }
+        if (data.length === 0) {
+          template.push([path, []]);
+        }
+        continue;
+      }
+    }
+
+    return {refs, template};
   }
   async _parse(data, {parentModel, omitNextTemplate = false} = {}) {
     const fields = [[[], data]];

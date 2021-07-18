@@ -1,4 +1,4 @@
-import {Iresine} from './index-async.js';
+import {Iresine} from './index.js';
 import expect from 'expect';
 import mock from 'jest-mock';
 

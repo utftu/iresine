@@ -21,6 +21,10 @@ class IresineReactQuery {
   settingQuery = false;
 
   add(queryHash, data, queryKey) {
+    this.coreStore.parse(data, (storeIds) => {
+      const newData = this.coreStore.joinRefs(template, refs);
+    });
+
     const result = this.coreStore.parse(data);
     if (result === null) {
       return;
